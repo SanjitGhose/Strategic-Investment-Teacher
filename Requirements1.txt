@@ -1,5 +1,39 @@
-streamlit
-pandas
-numpy
-plotly
-requests
+# Professional Investment Calculator - Requirements
+# Python package dependencies for the Investment Calculator application
+
+# Core web framework
+streamlit>=1.28.0
+
+# Data manipulation and analysis
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Interactive plotting and visualization
+plotly>=5.15.0
+
+# HTTP requests for API calls
+requests>=2.31.0
+
+# Date and time handling (built-in, no installation needed)
+# datetime
+
+# Optional: For enhanced data processing
+openpyxl>=3.1.0  # For Excel file handling if needed
+xlrd>=2.0.0      # For reading Excel files
+
+# Optional: For additional financial calculations
+scipy>=1.11.0    # For advanced mathematical functions
+yfinance>=0.2.0  # For stock market data (alternative data source)
+
+# Optional: For caching and performance
+cachetools>=5.3.0
+
+# Development and testing (optional)
+pytest>=7.4.0         # For unit testing
+black>=23.0.0         # For code formatting
+flake8>=6.0.0         # For code linting
+
+# Note: The following packages are included with Python standard library:
+# - warnings
+# - time
+# - json
