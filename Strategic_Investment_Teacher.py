@@ -760,3 +760,109 @@ def main():
             st.markdown("""
             <div class="success-message">
                 ✅ Current plan is sufficient to meet your goal!
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with col2:
+        st.subheader("⚖️ Risk Assessment")
+        risk_level = "Low" if normal_result['portfolio_risk'] < 0.1 else "Medium" if normal_result['portfolio_risk'] < 0.2 else "High"
+        risk_color = "#22c55e" if risk_level == "Low" else "#f59e0b" if risk_level == "Medium" else "#ef4444"
+        
+        st.markdown(f"""
+        <div class="info-box">
+            <strong>Portfolio Risk Level:</strong> <span style="color: {risk_color};">{risk_level}</span><br>
+            <strong>Sharpe Ratio:</strong> {(normal_result['portfolio_return'] - 0.07) / normal_result['portfolio_risk']:.2f}
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Educational section
+    st.header("📚 Learn More About Investment Concepts")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("🛡️ Risk-Free Rate"):
+            st.markdown("""
+            <div class="info-box">
+                <strong>Risk-Free Rate (7%):</strong><br>
+                • Government bond yield (10-year)<br>
+                • Benchmark for other investments<br>
+                • Used in CAPM calculations<br>
+                • Currently around 7% in India
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with col2:
+        if st.button("📊 Beta Coefficient"):
+            st.markdown("""
+            <div class="info-box">
+                <strong>Beta Coefficient:</strong><br>
+                • Measures volatility vs market<br>
+                • Beta = 1: Moves with market<br>
+                • Beta > 1: More volatile<br>
+                • Used for risk assessment
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with col3:
+        if st.button("📈 Standard Deviation"):
+            st.markdown("""
+            <div class="info-box">
+                <strong>Standard Deviation:</strong><br>
+                • Measures investment volatility<br>
+                • Higher SD = Higher risk<br>
+                • Shows return deviation<br>
+                • Key risk metric
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Try different combinations section
+    st.header("🔄 Try Different Combinations")
+    st.markdown("""
+    <div class="info-box">
+        💡 <strong>Tip:</strong> Adjust the sliders in the sidebar to see how different asset allocations 
+        affect your returns in real-time! Experiment with different scenarios to find your optimal investment strategy.
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Export results
+    st.header("📊 Investment Summary Report")
+    if st.button("📋 Generate Detailed Report", type="primary"):
+        report_data = {
+            'Investment Strategy': investment_type,
+            'Initial Amount': f"₹{initial_amount:,}" if initial_amount > 0 else "₹0",
+            'Monthly SIP': f"₹{monthly_investment:,}" if monthly_investment > 0 else "₹0",
+            'Time Horizon': f"{time_horizon} years",
+            'Target Amount': f"₹{target_amount:,}",
+            'Inflation Adjusted Target': f"₹{real_target:,.0f}",
+            'Asset Allocation': {
+                'Mutual Funds': f"{mf_allocation}%",
+                'Stocks': f"{stocks_allocation}%", 
+                'Fixed Deposits': f"{fd_allocation}%",
+                'Bonds': f"{bonds_allocation}%",
+                'AIF': f"{aif_allocation}%"
+            },
+            'Projected Results (Normal Market)': {
+                'Future Value': f"₹{normal_result['future_value']:,.0f}",
+                'Total Investment': f"₹{normal_result['total_investment']:,.0f}",
+                'Total Gains': f"₹{normal_result['gains']:,.0f}",
+                'Portfolio Return': f"{normal_result['portfolio_return']*100:.1f}%",
+                'Portfolio Risk': f"{normal_result['portfolio_risk']*100:.1f}%",
+                'Portfolio Beta': f"{normal_result['portfolio_beta']:.2f}"
+            }
+        }
+        
+        st.json(report_data)
+    
+    # Footer
+    st.markdown("---")
+    st.markdown("""
+    <div style="text-align: center; color: #6b7280; font-size: 0.9rem;">
+        <p>🎓 Strategic Investment Teacher - Educational Investment Planning Tool</p>
+        <p>Made with ❤️ for financial literacy and investment education</p>
+        <p><em>Remember: This tool is for educational purposes only. Always consult with a qualified financial advisor.</em></p>
+    </div>
+    """, unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    main()
