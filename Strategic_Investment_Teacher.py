@@ -1,15 +1,21 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.graph_objects as go
-import plotly.express as px
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime
 import warnings
-
 warnings.filterwarnings('ignore')
 
-# --- Page Configuration ---
+# Try to import plotly, if not available use basic charts
+try:
+    import plotly.graph_objects as go
+    import plotly.express as px
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    PLOTLY_AVAILABLE = False
+    st.warning("Plotly not installed. Using basic charts. Install plotly for better visualizations.")
+
+# Page configuration
 st.set_page_config(
     page_title="Strategic Investment Teacher",
     page_icon="📈",
@@ -17,134 +23,233 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- Custom CSS for a Clean, Modern Look (Simplified for readability) ---
+# Custom CSS for dark theme and professional styling
 st.markdown("""
 <style>
-    /* Remove default padding at the top of the main content area */
-    .st-emotion-cache-18ni7ap { padding-top: 0rem; } 
-    .st-emotion-cache-p2w5e4 { padding-top: 0rem; }
-
-    /* Style for the main header banner */
-    .main-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .main {
+        padding-top: 1rem;
+        background-color: #0e1117;
+    }
+    
+    .investment-card {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
         padding: 2rem;
         border-radius: 1rem;
         color: white;
-        margin-bottom: 2rem;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        margin: 1rem 0;
+        border: 2px solid #475569;
     }
-    .main-header h1 {
-        color: white; /* Ensure header text is white */
-        margin-bottom: 0.5rem;
+    
+    .metric-card {
+        background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+        padding: 1.2rem;
+        border-radius: 0.8rem;
+        border: 2px solid #6b7280;
+        margin: 0.3rem 0;
+        color: white;
     }
-    .main-header p {
-        color: #e0e0e0; /* Lighter text for subtitle */
-        font-size: 1.1rem;
-    }
-
-    /* Streamlit Metric styling for better visibility */
-    .stMetric > div[data-testid="stMetricValue"] {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #1e293b; /* Darker text for values */
-    }
-    .stMetric > div[data-testid="stMetricLabel"] {
+    
+    .metric-title {
+        color: #d1d5db;
         font-size: 0.9rem;
-        color: #64748b; /* Muted text for labels */
+        margin: 0 0 0.5rem 0;
+        font-weight: 500;
     }
-    .stMetric {
-        background-color: #f8fafc; /* Light background for metrics */
-        border: 1px solid #e2e8f0; /* Subtle border */
-        border-radius: 0.5rem;
-        padding: 1rem;
-        margin-bottom: 1rem; /* Space between metrics */
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    }
-
-    /* General header styling */
-    h1, h2, h3 {
-        color: #1e293b; /* Consistent dark color for all headers */
-    }
-
-    /* Streamlit tabs content padding adjustment */
-    .st-emotion-cache-1v0s1w-Tab-content {
-        padding: 0; /* Remove extra padding inside tabs */
-    }
-
-    /* Sidebar expander styling */
-    .streamlit-expanderHeader {
-        background-color: #e0e7ff; /* Light blue background for expander headers */
-        color: #312e81; /* Dark blue text */
+    
+    .metric-value {
+        color: #ffffff;
+        font-size: 1.3rem;
+        margin: 0;
         font-weight: bold;
-        border-radius: 0.5rem;
-        padding: 0.8rem 1rem;
-        margin-bottom: 0.5rem;
     }
-    .streamlit-expanderContent {
-        background-color: #f0f4ff; /* Lighter blue for expander content */
-        border-radius: 0.5rem;
+    
+    .disclaimer {
+        background: linear-gradient(135deg, #451a03 0%, #78350f 100%);
+        border: 2px solid #d97706;
+        padding: 1.2rem;
+        border-radius: 0.8rem;
+        margin: 1rem 0;
+        color: white;
+        font-size: 0.95rem;
+    }
+    
+    .success-message {
+        background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+        padding: 1.5rem;
+        border-radius: 0.8rem;
+        color: white;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+        border: 2px solid #10b981;
+        margin: 1rem 0;
+    }
+    
+    .motivational-message {
+        background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
+        padding: 1.5rem;
+        border-radius: 0.8rem;
+        color: white;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+        border: 2px solid #f59e0b;
+        margin: 1rem 0;
+    }
+    
+    .info-box {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
+        padding: 1.2rem;
+        border-radius: 0.8rem;
+        color: white;
+        border: 2px solid #6366f1;
+        margin: 0.5rem 0;
+    }
+    
+    .stSelectbox > div > div {
+        background-color: #374151;
+        color: white;
+    }
+    
+    .stNumberInput > div > div > input {
+        background-color: #374151;
+        color: white;
+    }
+    
+    .stSlider > div > div > div {
+        background-color: #374151;
+    }
+    
+    .scenario-header {
+        background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
         padding: 1rem;
-        border: 1px solid #c7d2fe;
+        border-radius: 0.5rem;
+        color: white;
+        text-align: center;
+        margin: 0.5rem 0;
+        border: 2px solid #6366f1;
     }
 </style>
 """, unsafe_allow_html=True)
 
-
-# --- Educational Content Data ---
+# Educational pop-ups data
 EDUCATIONAL_CONTENT = {
-    "mutual_funds": {"title": "📊 Mutual Funds", "content": """**What are Mutual Funds?**\n- Pool of money from many investors\n- Professionally managed by fund managers\n- Diversified portfolio of stocks, bonds, or other securities\n- Suitable for long-term wealth creation\n\n**Types:**\n- Equity Funds (High risk, high return)\n- Debt Funds (Low risk, moderate return)\n- Hybrid Funds (Balanced approach)"""},
-    "stocks": {"title": "📈 Stocks", "content": """**What are Stocks?**\n- Ownership shares in a company\n- Potential for high returns but volatile\n- Requires research and market knowledge\n- Best for long-term investment\n\n**Key Points:**\n- Dividend income + Capital appreciation\n- Market risk is high\n- Liquidity is good"""},
-    "fd": {"title": "🏛️ Fixed Deposits", "content": """**What are Fixed Deposits?**\n- Safe investment with guaranteed returns\n- Fixed interest rate for specific tenure\n- No market risk involved\n- Lower returns compared to equity\n\n**Features:**\n- Capital protection\n- Predictable returns\n- Various tenure options"""},
-    "bonds": {"title": "📜 Bonds", "content": """**What are Bonds?**\n- Debt instruments issued by companies/government\n- Regular interest payments (coupon)\n- Lower risk than stocks\n- Good for steady income\n\n**Types:**\n- Government Bonds (Safest)\n- Corporate Bonds (Higher yield)\n- Tax-saving bonds"""},
-    "aif": {"title": "🎯 Alternative Investment Funds", "content": """**What are AIFs?**\n- Privately pooled investment funds\n- Higher minimum investment\n- Less regulated than mutual funds\n- Potential for higher returns\n\n**Categories:**\n- Category I: Social ventures, SME funds\n- Category II: PE, Debt funds\n- Category III: Hedge funds"""},
-    "risk_free_rate": {"title": "🛡️ Risk-Free Rate", "content": """**What is Risk-Free Rate?**\n- Rate of return on investment with zero risk\n- Usually 10-year Government Bond yield\n- Used as benchmark for other investments\n- Currently around 7% in India\n\n**Why Important?**\n- Base for calculating expected returns\n- Helps in risk assessment\n- Used in CAPM model"""},
-    "beta": {"title": "📊 Beta", "content": """**What is Beta?**\n- Measures stock's volatility relative to market\n- Beta = 1: Moves with market\n- Beta > 1: More volatile than market\n- Beta < 1: Less volatile than market\n\n**Usage in Calculations:**\n- Helps determine expected returns\n- Risk assessment tool\n- Portfolio construction"""},
-    "standard_deviation": {"title": "📈 Standard Deviation", "content": """**What is Standard Deviation?**\n- Measures investment volatility\n- Higher SD = Higher risk\n- Shows how much returns deviate from average\n- Key risk metric for investments\n\n**In Investment Decisions:**\n- Risk assessment\n- Portfolio optimization\n- Return expectation setting"""}
+    "mutual_funds": {
+        "title": "📊 Mutual Funds",
+        "content": """
+        **What are Mutual Funds?**
+        - Pool of money from many investors
+        - Professionally managed by fund managers  
+        - Diversified portfolio of stocks, bonds, or other securities
+        - Suitable for long-term wealth creation
+        
+        **Types:**
+        - Equity Funds (High risk, high return)
+        - Debt Funds (Low risk, moderate return) 
+        - Hybrid Funds (Balanced approach)
+        """
+    },
+    "stocks": {
+        "title": "📈 Stocks", 
+        "content": """
+        **What are Stocks?**
+        - Ownership shares in a company
+        - Potential for high returns but volatile
+        - Requires research and market knowledge
+        - Best for long-term investment
+        
+        **Key Points:**
+        - Dividend income + Capital appreciation
+        - Market risk is high
+        - Liquidity is good
+        """
+    },
+    "fd": {
+        "title": "🏛️ Fixed Deposits",
+        "content": """
+        **What are Fixed Deposits?**
+        - Safe investment with guaranteed returns
+        - Fixed interest rate for specific tenure
+        - No market risk involved
+        - Lower returns compared to equity
+        
+        **Features:**
+        - Capital protection
+        - Predictable returns
+        - Various tenure options
+        """
+    },
+    "bonds": {
+        "title": "📜 Bonds",
+        "content": """
+        **What are Bonds?**
+        - Debt instruments issued by companies/government
+        - Regular interest payments (coupon)
+        - Lower risk than stocks
+        - Good for steady income
+        
+        **Types:**
+        - Government Bonds (Safest)
+        - Corporate Bonds (Higher yield)
+        - Tax-saving bonds
+        """
+    },
+    "aif": {
+        "title": "🎯 Alternative Investment Funds",
+        "content": """
+        **What are AIFs?**
+        - Privately pooled investment funds
+        - Higher minimum investment
+        - Less regulated than mutual funds
+        - Potential for higher returns
+        
+        **Categories:**
+        - Category I: Social ventures, SME funds
+        - Category II: PE, Debt funds
+        - Category III: Hedge funds
+        """
+    }
 }
 
-# --- Helper Functions ---
-def show_educational_popup(content_key):
-    """Displays educational content in an expander within the sidebar."""
-    content = EDUCATIONAL_CONTENT[content_key]
-    with st.expander(f"💡 Learn about {content['title']}", expanded=False):
-        st.markdown(content['content'])
-
-@st.cache_data(ttl=3600)  # Cache data for 1 hour to avoid excessive API calls
+@st.cache_data(ttl=3600)
 def fetch_amfi_data():
-    """
-    Fetches real-time mutual fund data from AMFI India.
-    Includes a fallback to sample data if the API call fails.
-    """
+    """Fetch real-time mutual fund data from AMFI"""
     try:
         url = "https://www.amfiindia.com/spages/NAVAll.txt"
-        response = requests.get(url, timeout=10) # Added timeout for robustness
+        response = requests.get(url, timeout=10)
         
         if response.status_code == 200:
             lines = response.text.split('\n')
             data = []
             current_fund_house = ""
-            for line in lines:
+            
+            for line in lines[:1000]:  # Limit processing for performance
                 line = line.strip()
-                if not line: continue # Skip empty lines
-                
-                # Identify fund house lines (start with non-digit)
-                if not line[0].isdigit():
-                    if "Mutual Fund" in line: 
+                if not line:
+                    continue
+                    
+                if line and not line[0].isdigit():
+                    if "Mutual Fund" in line:
                         current_fund_house = line
                 else:
-                    # Parse scheme data lines
                     parts = line.split(';')
-                    if len(parts) >= 6: # Ensure enough parts for relevant data
+                    if len(parts) >= 6:
                         try:
+                            scheme_code = parts[0]
                             scheme_name = parts[3]
                             nav = float(parts[4])
                             date = parts[5]
-                            # Simple logic to infer plan type and expense ratio
-                            plan_type = "Direct" if "Direct" in scheme_name.upper() else "Regular"
-                            expense_ratio = 1.2 if plan_type == 'Direct' else 2.0 # Example values
+                            
+                            plan_type = "Regular"
+                            expense_ratio = 2.0
+                            
+                            if "Direct" in scheme_name.upper():
+                                plan_type = "Direct"
+                                expense_ratio = 1.2
+                            
                             data.append({
                                 'fund_house': current_fund_house,
+                                'scheme_code': scheme_code,
                                 'scheme_name': scheme_name,
                                 'nav': nav,
                                 'date': date,
@@ -152,78 +257,80 @@ def fetch_amfi_data():
                                 'expense_ratio': expense_ratio
                             })
                         except (ValueError, IndexError):
-                            # Skip lines that cannot be parsed
                             continue
             
-            df = pd.DataFrame(data)
-            # Filter out any schemes with NaN NAV or other issues
-            df = df.dropna(subset=['nav'])
-            return df
+            return pd.DataFrame(data).head(50)
         else:
-            st.warning(f"Failed to fetch live data from AMFI (Status: {response.status_code}). Using sample data.")
             return create_sample_mf_data()
-    except requests.exceptions.RequestException as e:
-        st.error(f"Network error fetching live data: {e}. Using sample data.")
-        return create_sample_mf_data()
     except Exception as e:
-        st.error(f"An unexpected error occurred during data fetch: {e}. Using sample data.")
+        st.warning(f"Using sample data due to: {str(e)}")
         return create_sample_mf_data()
 
 def create_sample_mf_data():
-    """Generates sample mutual fund data for demonstration or fallback."""
+    """Create sample mutual fund data"""
     sample_data = []
     fund_types = ['Large Cap', 'Mid Cap', 'Small Cap', 'Multi Cap', 'Debt', 'Hybrid']
     fund_houses = ['HDFC', 'ICICI', 'SBI', 'Axis', 'Kotak', 'Aditya Birla']
-    for i in range(100):
+    
+    for i in range(30):
         fund_house = np.random.choice(fund_houses)
         fund_type = np.random.choice(fund_types)
         plan_type = np.random.choice(['Direct', 'Regular'])
+        
         sample_data.append({
             'fund_house': f"{fund_house} Mutual Fund",
+            'scheme_code': f"MF{1000+i:04d}",
             'scheme_name': f"{fund_house} {fund_type} Fund - {plan_type} Plan",
             'nav': round(np.random.uniform(10, 500), 2),
             'date': datetime.now().strftime('%d-%b-%Y'),
             'plan_type': plan_type,
             'expense_ratio': 1.2 if plan_type == 'Direct' else 2.0
         })
+    
     return pd.DataFrame(sample_data)
 
 def calculate_investment_returns(amount, years, monthly_investment, allocation, scenario='normal'):
-    """
-    Calculates projected investment returns based on initial amount, monthly SIP,
-    time horizon, asset allocation, and market scenario.
-    """
-    # Expected returns for different asset classes and market scenarios
+    """Calculate investment returns for different scenarios"""
+    
     asset_returns = {
-        'normal': {'mutual_funds': 0.12, 'stocks': 0.15, 'fd': 0.06, 'bonds': 0.07, 'aif': 0.18},
-        'bullish': {'mutual_funds': 0.18, 'stocks': 0.25, 'fd': 0.06, 'bonds': 0.07, 'aif': 0.28},
-        'bearish': {'mutual_funds': 0.04, 'stocks': 0.02, 'fd': 0.06, 'bonds': 0.07, 'aif': 0.08}
+        'normal': {
+            'mutual_funds': 0.12, 'stocks': 0.15, 'fd': 0.06, 'bonds': 0.07, 'aif': 0.18
+        },
+        'bullish': {
+            'mutual_funds': 0.18, 'stocks': 0.25, 'fd': 0.06, 'bonds': 0.07, 'aif': 0.28
+        },
+        'bearish': {
+            'mutual_funds': 0.04, 'stocks': 0.02, 'fd': 0.06, 'bonds': 0.07, 'aif': 0.08
+        }
     }
-    # Risk (Standard Deviation) for different asset classes
-    asset_risks = {'mutual_funds': 0.18, 'stocks': 0.25, 'fd': 0.02, 'bonds': 0.05, 'aif': 0.30}
-    # Beta for different asset classes (market sensitivity)
-    asset_betas = {'mutual_funds': 0.85, 'stocks': 1.2, 'fd': 0.0, 'bonds': 0.1, 'aif': 1.5}
+    
+    asset_risks = {
+        'mutual_funds': 0.18, 'stocks': 0.25, 'fd': 0.02, 'bonds': 0.05, 'aif': 0.30
+    }
+    
+    asset_betas = {
+        'mutual_funds': 0.85, 'stocks': 1.2, 'fd': 0.0, 'bonds': 0.1, 'aif': 1.5
+    }
     
     returns = asset_returns[scenario]
-    risk_free_rate = 0.07 # Assumed risk-free rate for Sharpe Ratio
-
-    # Calculate weighted average portfolio return, risk, and beta based on allocation
+    
+    # Calculate portfolio weighted return
     portfolio_return = sum(allocation[asset] * returns[asset] for asset in allocation)
     portfolio_risk = sum(allocation[asset] * asset_risks[asset] for asset in allocation)
     portfolio_beta = sum(allocation[asset] * asset_betas[asset] for asset in allocation)
     
+    # Calculate future value
     months = years * 12
     monthly_return = portfolio_return / 12
     
-    # Future value of lump sum investment
+    # Future value of lump sum
     fv_lumpsum = amount * (1 + portfolio_return) ** years
     
-    # Future value of monthly investments (SIP) - using annuity formula
-    fv_monthly = 0
-    if monthly_investment > 0 and monthly_return > 1e-9: # Avoid division by zero
+    # Future value of monthly investments
+    if monthly_investment > 0:
         fv_monthly = monthly_investment * (((1 + monthly_return) ** months - 1) / monthly_return)
-    elif monthly_investment > 0 and monthly_return <= 1e-9: # If return is effectively zero
-        fv_monthly = monthly_investment * months
+    else:
+        fv_monthly = 0
     
     total_future_value = fv_lumpsum + fv_monthly
     total_investment = amount + (monthly_investment * months)
@@ -237,238 +344,419 @@ def calculate_investment_returns(amount, years, monthly_investment, allocation, 
         'portfolio_beta': portfolio_beta
     }
 
-# --- Main Streamlit Application ---
+def show_educational_popup(content_key):
+    """Show educational content in expander"""
+    if content_key in EDUCATIONAL_CONTENT:
+        content = EDUCATIONAL_CONTENT[content_key]
+        with st.expander(f"💡 Learn about {content['title']}", expanded=False):
+            st.markdown(content['content'])
+
+def create_metric_card(title, value, color="#ffffff"):
+    """Create a dark themed metric card"""
+    return f"""
+    <div class="metric-card">
+        <h4 class="metric-title">{title}</h4>
+        <h3 class="metric-value" style="color: {color};">{value}</h3>
+    </div>
+    """
+
 def main():
-    # --- Header Section ---
+    # Header
     st.markdown("""
-    <div class="main-header">
+    <div class="investment-card">
         <h1>🎓 Strategic Investment Teacher</h1>
-        <p>Plan your financial future with sophisticated calculations and real-time data</p>
+        <p>Learn to plan your financial future with real-time data and sophisticated calculations</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # --- Disclaimer ---
-    st.warning("""
-    **⚠️ IMPORTANT DISCLAIMER:** This application is for educational purposes only. The returns and calculations shown are based on mathematical models and should not be considered investment advice. Past performance is not a guarantee of future results. Please consult with a SEBI registered investment advisor before making any investment decisions.
-    """)
+    # Disclaimer
+    st.markdown("""
+    <div class="disclaimer">
+        <strong>⚠️ IMPORTANT DISCLAIMER:</strong> This application is for educational purposes only. 
+        The returns and calculations shown are based on historical data and mathematical models, and should not be considered as investment advice. 
+        Past performance does not guarantee future results. Please consult with a SEBI registered investment advisor before making any investment decisions. 
+        The developers are not responsible for any financial losses incurred based on the information provided in this application.
+    </div>
+    """, unsafe_allow_html=True)
     
-    # --- Data Fetch Status ---
-    with st.spinner("Attempting to fetch real-time mutual fund data from AMFI..."):
+    # Fetch mutual fund data
+    with st.spinner("📊 Fetching real-time mutual fund data from AMFI..."):
         mf_data = fetch_amfi_data()
-    if not mf_data.empty:
-        st.success(f"✅ Successfully loaded {len(mf_data)} mutual fund schemes.")
-    else:
-        st.error("❌ Could not fetch live mutual fund data. Displaying sample data only.")
-
-    # --- Sidebar for Investment Parameters ---
+    
+    st.success(f"✅ Loaded {len(mf_data)} mutual fund schemes with real-time NAV data")
+    
+    # Sidebar for inputs
     st.sidebar.header("📊 Investment Parameters")
     
-    # Investment Type (Lump Sum / SIP)
-    with st.sidebar.expander("💰 Investment Type", expanded=True):
-        investment_type = st.radio("Choose your investment approach:", ["Lump Sum", "SIP"], key="inv_type_radio")
-        
-        initial_amount = 0
+    # Investment type selection
+    st.sidebar.subheader("💰 Investment Type")
+    investment_type = st.sidebar.radio(
+        "Choose your investment approach:",
+        ["Lump Sum", "SIP (Systematic Investment Plan)"],
+        help="Select whether you want to invest a one-time amount or monthly installments"
+    )
+    
+    if investment_type == "Lump Sum":
+        initial_amount = st.sidebar.number_input(
+            "💰 Total Lump Sum Investment (₹)",
+            min_value=1000,
+            value=100000,
+            step=5000,
+            help="Enter your one-time investment amount"
+        )
         monthly_investment = 0
+        total_investment_period = initial_amount
+        st.sidebar.info(f"Total Investment: ₹{total_investment_period:,}")
         
-        if investment_type == "Lump Sum":
-            initial_amount = st.number_input("Total Lump Sum Investment (₹)", min_value=0, value=100000, step=5000, key="lump_sum_input")
-            time_horizon = st.slider("Investment Time Horizon (Years)", min_value=1, max_value=30, value=10, key="lump_sum_years")
-            monthly_investment = st.number_input("Additional Monthly SIP (Optional) (₹)", min_value=0, value=0, step=500, key="additional_sip_input")
-        else: # SIP
-            monthly_investment = st.number_input("Monthly SIP Amount (₹)", min_value=0, value=5000, step=500, key="monthly_sip_input")
-            time_horizon = st.slider("Investment Time Horizon (Years)", min_value=1, max_value=30, value=10, key="sip_years")
-            initial_amount = st.number_input("Initial Lump Sum (Optional) (₹)", min_value=0, value=0, step=5000, key="initial_lump_sum_sip")
-
-    # Investment Goals
-    with st.sidebar.expander("🎯 Investment Goals", expanded=True):
-        goal_type = st.selectbox("Select Your Primary Goal", ["Retirement", "Child Education", "House Purchase", "Wealth Creation", "Emergency Fund"], key="goal_type_select")
-        target_amount = st.number_input("Target Amount (₹)", min_value=1000, value=1000000, step=50000, key="target_amount_input")
-        inflation_rate = st.slider("Expected Inflation Rate (%)", min_value=0.0, max_value=10.0, value=4.8, step=0.1, key="inflation_rate_slider")
+    else:  # SIP
+        monthly_investment = st.sidebar.number_input(
+            "📅 Monthly SIP Amount (₹)",
+            min_value=500,
+            value=5000,
+            step=500,
+            help="Enter your monthly SIP amount"
+        )
+        initial_amount = 0
         
-        # Calculate inflation-adjusted target
-        real_target = target_amount * ((1 + inflation_rate/100) ** time_horizon)
-        st.metric("Inflation Adjusted Target", f"₹{real_target:,.0f}")
-
-    # Asset Allocation
-    with st.sidebar.expander("📊 Asset Allocation", expanded=True):
-        st.write("Allocate your portfolio across different asset classes:")
-        mf_allocation = st.slider("Mutual Funds (%)", 0, 100, 40, key="mf_alloc_slider")
-        stocks_allocation = st.slider("Stocks (%)", 0, 100, 20, key="stocks_alloc_slider")
-        fd_allocation = st.slider("Fixed Deposits (%)", 0, 100, 20, key="fd_alloc_slider")
-        bonds_allocation = st.slider("Bonds (%)", 0, 100, 15, key="bonds_alloc_slider")
-        aif_allocation = st.slider("AIF (%)", 0, 100, 5, key="aif_alloc_slider")
+        time_horizon_temp = st.sidebar.slider(
+            "⏱️ Investment Time Horizon (Years)",
+            min_value=1,
+            max_value=30,
+            value=10,
+            help="How long do you plan to invest?"
+        )
         
-        total_allocation = mf_allocation + stocks_allocation + fd_allocation + bonds_allocation + aif_allocation
-        
-        if total_allocation != 100:
-            st.error(f"Total allocation must be 100%. Current: {total_allocation}%")
-            # If allocation is not 100%, stop execution to prevent incorrect calculations
-            # or allow user to correct before proceeding. For a live app, stopping is better.
-            st.stop() 
-        
-        allocation = {
-            'mutual_funds': mf_allocation/100,
-            'stocks': stocks_allocation/100,
-            'fd': fd_allocation/100,
-            'bonds': bonds_allocation/100,
-            'aif': aif_allocation/100
-        }
-
-    # Learn More Section (Educational Popups)
-    st.sidebar.header("📚 Learn More About Terms")
-    with st.sidebar.container(): # Group buttons for better layout
-        for content_key in ["mutual_funds", "stocks", "fd", "bonds", "aif", "risk_free_rate", "beta", "standard_deviation"]:
-            show_educational_popup(content_key)
-
-    # --- Main Content Area: Investment Analysis Results ---
-    st.header("📊 Investment Analysis Results")
+        total_investment_period = monthly_investment * time_horizon_temp * 12
+        st.sidebar.info(f"Total Investment over {time_horizon_temp} years: ₹{total_investment_period:,}")
+    
+    # Time horizon
+    if investment_type == "Lump Sum":
+        time_horizon = st.sidebar.slider(
+            "⏱️ Investment Time Horizon (Years)",
+            min_value=1,
+            max_value=30,
+            value=10,
+            help="How long do you plan to invest?"
+        )
+    else:
+        time_horizon = time_horizon_temp
+    
+    # Investment goals
+    st.sidebar.subheader("🎯 Investment Goals")
+    goal_type = st.sidebar.selectbox(
+        "Select Your Primary Goal",
+        ["Retirement", "Child Education", "House Purchase", "Wealth Creation", "Emergency Fund"]
+    )
+    
+    target_amount = st.sidebar.number_input(
+        "🎯 Target Amount (₹)",
+        min_value=50000,
+        value=1000000,
+        step=50000,
+        help="How much do you want to accumulate?"
+    )
+    
+    # Inflation adjustment
+    inflation_rate = st.sidebar.slider(
+        "📈 Expected Inflation Rate (%)",
+        min_value=3.0,
+        max_value=8.0,
+        value=4.8,
+        step=0.1,
+        help="Adjust target amount for inflation"
+    )
+    
+    # Adjust target amount for inflation
+    real_target = target_amount * ((1 + inflation_rate/100) ** time_horizon)
+    
+    st.sidebar.markdown(f"""
+    <div class="info-box">
+        <strong>Inflation Adjusted Target:</strong><br>
+        ₹{real_target:,.0f}
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Asset allocation
+    st.sidebar.subheader("📊 Asset Allocation")
+    
+    mf_allocation = st.sidebar.slider("Mutual Funds (%)", 0, 100, 40)
+    show_educational_popup("mutual_funds")
+    
+    stocks_allocation = st.sidebar.slider("Stocks (%)", 0, 100, 20)
+    show_educational_popup("stocks")
+    
+    fd_allocation = st.sidebar.slider("Fixed Deposits (%)", 0, 100, 20)
+    show_educational_popup("fd")
+    
+    bonds_allocation = st.sidebar.slider("Bonds (%)", 0, 100, 15)
+    show_educational_popup("bonds")
+    
+    aif_allocation = st.sidebar.slider("AIF (%)", 0, 100, 5)
+    show_educational_popup("aif")
+    
+    total_allocation = mf_allocation + stocks_allocation + fd_allocation + bonds_allocation + aif_allocation
+    
+    if total_allocation != 100:
+        st.sidebar.error(f"Total allocation should be 100%. Current: {total_allocation}%")
+        st.stop()
+    
+    allocation = {
+        'mutual_funds': mf_allocation/100,
+        'stocks': stocks_allocation/100,
+        'fd': fd_allocation/100,
+        'bonds': bonds_allocation/100,
+        'aif': aif_allocation/100
+    }
+    
+    # Additional monthly investment for lump sum
+    if investment_type == "Lump Sum":
+        st.sidebar.subheader("📅 Additional Monthly Investment (Optional)")
+        additional_monthly = st.sidebar.number_input(
+            "Additional Monthly SIP (₹)",
+            min_value=0,
+            value=0,
+            step=500,
+            help="Optional additional monthly investment amount"
+        )
+        monthly_investment = additional_monthly
+    
+    # Main calculations
+    col1, col2, col3 = st.columns(3)
+    
     scenarios = ['normal', 'bullish', 'bearish']
     scenario_names = ['Normal Market', 'Bull Market', 'Bear Market']
+    scenario_colors = ['#3b82f6', '#10b981', '#ef4444']
+    results = {}
     
-    # Calculate results for all scenarios
-    results = {s: calculate_investment_returns(initial_amount, time_horizon, monthly_investment, allocation, s) for s in scenarios}
-
-    # Display results using tabs for each scenario
-    tabs = st.tabs(scenario_names)
-    for i, tab in enumerate(tabs):
-        with tab:
-            result = results[scenarios[i]]
-            st.subheader(f"{scenario_names[i]} Scenario Projections")
+    for scenario in scenarios:
+        results[scenario] = calculate_investment_returns(
+            initial_amount, time_horizon, monthly_investment, allocation, scenario
+        )
+    
+    # Display results
+    st.header("📊 Investment Analysis Results")
+    
+    # Metrics display with dark theme
+    for i, scenario in enumerate(scenarios):
+        result = results[scenario]
+        
+        with [col1, col2, col3][i]:
+            st.markdown(f"""
+            <div class="scenario-header">
+                <h3>📈 {scenario_names[i]}</h3>
+            </div>
+            """, unsafe_allow_html=True)
             
-            # Use columns for a cleaner metric display
-            col1, col2, col3, col4 = st.columns(4)
-            with col1: st.metric("Total Investment", f"₹{result['total_investment']:,.0f}")
-            with col2: st.metric("Future Value", f"₹{result['future_value']:,.0f}")
-            with col3: st.metric("Total Gains", f"₹{result['gains']:,.0f}")
-            with col4: st.metric("Portfolio Return", f"{result['portfolio_return']*100:.1f}%")
-
-            st.markdown("---") # Separator for more metrics
-            col_a, col_b = st.columns(2)
-            with col_a: st.metric("Portfolio Risk (Std Dev)", f"{result['portfolio_risk']*100:.1f}%")
-            with col_b: st.metric("Portfolio Beta", f"{result['portfolio_beta']:.2f}")
-
-    # --- Goal Achievement Analysis ---
-    st.header("🎯 Goal Achievement Analysis")
-    normal_result = results['normal']
+            st.markdown(create_metric_card("Total Investment", f"₹{result['total_investment']:,.0f}", "#94a3b8"), unsafe_allow_html=True)
+            st.markdown(create_metric_card("Future Value", f"₹{result['future_value']:,.0f}", "#22c55e"), unsafe_allow_html=True)
+            st.markdown(create_metric_card("Total Gains", f"₹{result['gains']:,.0f}", "#f59e0b"), unsafe_allow_html=True)
+            st.markdown(create_metric_card("Portfolio Return", f"{result['portfolio_return']*100:.1f}%", "#8b5cf6"), unsafe_allow_html=True)
+            st.markdown(create_metric_card("Portfolio Risk", f"{result['portfolio_risk']*100:.1f}%", "#ef4444"), unsafe_allow_html=True)
+            st.markdown(create_metric_card("Portfolio Beta", f"{result['portfolio_beta']:.2f}", "#06b6d4"), unsafe_allow_html=True)
     
+    # Goal achievement check
+    st.header("🎯 Goal Achievement Analysis")
+    
+    normal_result = results['normal']
     if normal_result['future_value'] >= real_target:
-        st.success(f"🎉 Congratulations! Your investment plan is on track to achieve your inflation-adjusted target of ₹{real_target:,.0f}!")
+        st.markdown(f"""
+        <div class="success-message">
+            🎉 Congratulations! Your investment plan can help you achieve your goal!<br>
+            You're on track to reach your inflation-adjusted target of ₹{real_target:,.0f}
+        </div>
+        """, unsafe_allow_html=True)
     else:
         shortfall = real_target - normal_result['future_value']
+        additional_monthly_needed = shortfall / (time_horizon * 12)
         
-        # Calculate required additional monthly investment (SIP)
-        # Avoid division by zero if portfolio return is zero or very close to it
-        monthly_rate_of_return = normal_result['portfolio_return'] / 12
+        st.markdown(f"""
+        <div class="motivational-message">
+            💪 Don't worry! You're making great progress. To reach your goal, consider:<br>
+            • Increasing monthly SIP by ₹{additional_monthly_needed:,.0f}<br>
+            • Extending investment horizon<br>
+            • Reviewing asset allocation for higher returns<br><br>
+            Remember: Every investment step counts towards your financial freedom!
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Time to goal calculation
+    st.subheader("⏰ Time to Reach Goal")
+    if initial_amount > 0:
+        years_needed = np.log(real_target / initial_amount) / np.log(1 + normal_result['portfolio_return'])
+        st.markdown(f"""
+        <div class="info-box">
+            With current allocation, you'll need approximately <strong>{years_needed:.1f} years</strong> to reach your goal
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Charts section
+    st.header("📊 Investment Projections")
+    
+    if PLOTLY_AVAILABLE:
+        # Create projection data
+        years_range = list(range(1, min(time_horizon + 1, 21)))  # Limit to 20 years for performance
+        projection_data = {
+            'Year': years_range,
+            'Normal Market': [],
+            'Bull Market': [],
+            'Bear Market': []
+        }
         
-        if monthly_rate_of_return > 1e-9: # Check if rate is significantly positive
-            # Formula for required monthly payment to reach a future value
-            required_monthly_sip = shortfall * monthly_rate_of_return / ((1 + monthly_rate_of_return)**(time_horizon * 12) - 1)
-            st.warning(f"💪 Your current plan might fall short. To reach your inflation-adjusted target of ₹{real_target:,.0f}, consider increasing your monthly investment by **₹{required_monthly_sip:,.0f}**.")
-        else:
-            st.warning("Your current portfolio return is too low to meet the target. Consider adjusting your asset allocation for higher returns or extending your investment horizon.")
-
-    # --- Investment Projections Chart ---
-    st.header("📊 Investment Growth Projection")
-    years_range = list(range(1, time_horizon + 1))
+        for year in years_range:
+            for i, scenario in enumerate(scenarios):
+                temp_result = calculate_investment_returns(
+                    initial_amount, year, monthly_investment, allocation, scenario
+                )
+                projection_data[scenario_names[i]].append(temp_result['future_value'])
+        
+        # Create chart
+        fig = go.Figure()
+        
+        for i, scenario in enumerate(scenario_names):
+            fig.add_trace(go.Scatter(
+                x=projection_data['Year'],
+                y=projection_data[scenario],
+                mode='lines+markers',
+                name=scenario,
+                line=dict(color=scenario_colors[i], width=3),
+                marker=dict(size=6)
+            ))
+        
+        # Add target line
+        fig.add_hline(
+            y=real_target,
+            line_dash="dash",
+            line_color="#ffffff",
+            annotation_text=f"Target: ₹{real_target:,.0f}"
+        )
+        
+        fig.update_layout(
+            title="Investment Growth Projection",
+            xaxis_title="Years",
+            yaxis_title="Amount (₹)",
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white'),
+            height=500,
+            showlegend=True
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Asset allocation pie chart
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            allocation_data = pd.DataFrame({
+                'Asset Class': ['Mutual Funds', 'Stocks', 'Fixed Deposits', 'Bonds', 'AIF'],
+                'Allocation (%)': [mf_allocation, stocks_allocation, fd_allocation, bonds_allocation, aif_allocation]
+            })
+            
+            fig_pie = px.pie(
+                allocation_data, 
+                values='Allocation (%)', 
+                names='Asset Class',
+                title='Portfolio Asset Allocation'
+            )
+            fig_pie.update_layout(
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                font=dict(color='white')
+            )
+            st.plotly_chart(fig_pie, use_container_width=True)
+        
+        with col2:
+            # Risk-Return scatter plot
+            asset_data = pd.DataFrame({
+                'Asset': ['Mutual Funds', 'Stocks', 'Fixed Deposits', 'Bonds', 'AIF'],
+                'Expected Return (%)': [12, 15, 6, 7, 18],
+                'Risk (%)': [18, 25, 2, 5, 30],
+                'Allocation (%)': [mf_allocation, stocks_allocation, fd_allocation, bonds_allocation, aif_allocation]
+            })
+            
+            fig_scatter = px.scatter(
+                asset_data,
+                x='Risk (%)',
+                y='Expected Return (%)',
+                size='Allocation (%)',
+                hover_name='Asset',
+                title='Risk vs Return Profile'
+            )
+            fig_scatter.update_layout(
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                font=dict(color='white')
+            )
+            st.plotly_chart(fig_scatter, use_container_width=True)
     
-    # Prepare data for the projection chart
-    projection_data = pd.DataFrame(index=years_range)
-    for i, scenario in enumerate(scenarios):
-        scenario_values = [
-            calculate_investment_returns(initial_amount, y, monthly_investment, allocation, scenario)['future_value']
-            for y in years_range
-        ]
-        projection_data[scenario_names[i]] = scenario_values
+    else:
+        # Basic charts using streamlit native functions
+        st.subheader("Investment Growth Over Time")
+        
+        years_range = list(range(1, min(time_horizon + 1, 11)))
+        chart_data = pd.DataFrame({
+            'Year': years_range,
+            'Normal Market': [calculate_investment_returns(initial_amount, year, monthly_investment, allocation, 'normal')['future_value'] for year in years_range],
+            'Bull Market': [calculate_investment_returns(initial_amount, year, monthly_investment, allocation, 'bullish')['future_value'] for year in years_range],
+            'Bear Market': [calculate_investment_returns(initial_amount, year, monthly_investment, allocation, 'bearish')['future_value'] for year in years_range]
+        })
+        chart_data.set_index('Year', inplace=True)
+        st.line_chart(chart_data)
+        
+        # Asset allocation bar chart
+        allocation_chart = pd.DataFrame({
+            'Asset': ['Mutual Funds', 'Stocks', 'Fixed Deposits', 'Bonds', 'AIF'],
+            'Allocation': [mf_allocation, stocks_allocation, fd_allocation, bonds_allocation, aif_allocation]
+        })
+        allocation_chart.set_index('Asset', inplace=True)
+        st.bar_chart(allocation_chart)
     
-    # Create interactive line chart
-    fig = px.line(
-        projection_data, 
-        x=projection_data.index, 
-        y=projection_data.columns,
-        title="Investment Growth Projection Over Time",
-        labels={'index': 'Years', 'value': 'Amount (₹)', 'variable': 'Market Scenario'},
-        line_dash_map={'Normal Market': 'solid', 'Bull Market': 'dash', 'Bear Market': 'dot'},
-        color_discrete_map={'Normal Market': '#1f77b4', 'Bull Market': '#2ca02c', 'Bear Market': '#d62728'}
-    )
+    # Mutual funds data display
+    st.header("📈 Available Mutual Funds (Real-time AMFI Data)")
     
-    # Add target line
-    fig.add_hline(
-        y=real_target,
-        line_dash="dash",
-        line_color="red",
-        annotation_text=f"Target: ₹{real_target:,.0f}",
-        annotation_position="top left"
-    )
+    # Filter options
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        selected_plan = st.selectbox("Plan Type", ['All', 'Direct', 'Regular'])
+    with col2:
+        search_term = st.text_input("Search Fund Name")
+    with col3:
+        min_nav = st.number_input("Minimum NAV", min_value=0.0, value=0.0)
     
-    fig.update_layout(hovermode='x unified', height=500, showlegend=True)
-    st.plotly_chart(fig, use_container_width=True)
-
-    # --- Portfolio Composition Charts ---
-    st.header("📈 Portfolio Composition")
+    # Filter data
+    filtered_mf = mf_data.copy()
+    if selected_plan != 'All':
+        filtered_mf = filtered_mf[filtered_mf['plan_type'] == selected_plan]
+    if search_term:
+        filtered_mf = filtered_mf[filtered_mf['scheme_name'].str.contains(search_term, case=False, na=False)]
+    if min_nav > 0:
+        filtered_mf = filtered_mf[filtered_mf['nav'] >= min_nav]
+    
+    # Display filtered data
+    if not filtered_mf.empty:
+        st.dataframe(
+            filtered_mf[['scheme_name', 'nav', 'plan_type', 'expense_ratio', 'date']].head(20),
+            use_container_width=True
+        )
+    else:
+        st.warning("No funds match your search criteria.")
+    
+    # Investment recommendations
+    st.header("💡 Investment Recommendations")
+    
     col1, col2 = st.columns(2)
     
     with col1:
-        # Pie chart for Asset Allocation
-        allocation_data = pd.DataFrame({
-            'Asset Class': ['Mutual Funds', 'Stocks', 'Fixed Deposits', 'Bonds', 'AIF'],
-            'Allocation (%)': [mf_allocation, stocks_allocation, fd_allocation, bonds_allocation, aif_allocation]
-        })
-        fig_pie = px.pie(
-            allocation_data, 
-            values='Allocation (%)', 
-            names='Asset Class',
-            title='Current Portfolio Asset Allocation',
-            hole=0.3 # Creates a donut chart
-        )
-        st.plotly_chart(fig_pie, use_container_width=True)
-    
-    with col2:
-        # Scatter plot for Risk vs Return Profile
-        asset_data = pd.DataFrame({
-            'Asset': ['Mutual Funds', 'Stocks', 'Fixed Deposits', 'Bonds', 'AIF'],
-            'Expected Return (%)': [12, 15, 6, 7, 18], # Example returns for normal scenario
-            'Risk (%)': [18, 25, 2, 5, 30], # Example risks
-            'Allocation (%)': [mf_allocation, stocks_allocation, fd_allocation, bonds_allocation, aif_allocation]
-        })
-        fig_scatter = px.scatter(
-            asset_data,
-            x='Risk (%)',
-            y='Expected Return (%)',
-            size='Allocation (%)', # Size of marker based on allocation
-            hover_name='Asset',
-            title='Asset Class Risk vs Return Profile',
-            color='Asset', # Color points by asset type
-            size_max=40 # Max size for markers
-        )
-        st.plotly_chart(fig_scatter, use_container_width=True)
-    
-    # --- Mutual Funds Data Display ---
-    st.header("🔎 Explore Mutual Funds (Live AMFI Data)")
-    if not mf_data.empty:
-        col_search, col_plan = st.columns(2)
-        with col_search:
-            search_term = st.text_input("Search Fund Name", key="search_fund_input", placeholder="e.g., HDFC Equity Fund")
-        with col_plan:
-            selected_plan = st.selectbox("Filter by Plan Type", ['All', 'Direct', 'Regular'], key="plan_type_select")
-
-        filtered_mf = mf_data.copy()
-        if selected_plan != 'All':
-            filtered_mf = filtered_mf[filtered_mf['plan_type'] == selected_plan]
-        if search_term:
-            filtered_mf = filtered_mf[filtered_mf['scheme_name'].str.contains(search_term, case=False, na=False)]
-        
-        st.dataframe(
-            filtered_mf[['fund_house', 'scheme_name', 'nav', 'plan_type', 'expense_ratio', 'date']].head(50), 
-            use_container_width=True,
-            height=300 # Set a fixed height for the dataframe
-        )
-        if filtered_mf.empty:
-            st.info("No mutual funds match your search criteria.")
-    else:
-        st.info("Mutual fund data is not available to display at this time.")
-
-    st.markdown("---")
-    st.info("💡 **Tip:** Adjust the parameters in the sidebar to see how different investment strategies impact your financial future!")
-
-if __name__ == "__main__":
-    main()
+        st.subheader("📅 Optimal Monthly Investment")
+        if normal_result['future_value'] < real_target:
+            required_monthly = (real_target - initial_amount * (1 + normal_result['portfolio_return']) ** time_horizon) / (((1 + normal_result['portfolio_return']/12) ** (time_horizon * 12) - 1) / (normal_result['portfolio_return']/12))
+            st.markdown(f"""
+            <div class="info-box">
+                <strong>Recommended Monthly SIP:</strong><br>
+                ₹{required_monthly:,.0f}
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="success-message">
+                ✅ Current plan is sufficient to meet your goal!
