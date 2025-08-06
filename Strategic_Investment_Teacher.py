@@ -1,19 +1,12 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import requests
+import plotly.graph_objects as go
+import plotly.express as px
 from datetime import datetime
 import warnings
-warnings.filterwarnings('ignore')
 
-# Try to import plotly, if not available use basic charts
-try:
-    import plotly.graph_objects as go
-    import plotly.express as px
-    PLOTLY_AVAILABLE = True
-except ImportError:
-    PLOTLY_AVAILABLE = False
-    st.warning("Plotly not installed. Using basic charts. Install plotly for better visualizations.")
+warnings.filterwarnings('ignore')
 
 # Page configuration
 st.set_page_config(
@@ -211,84 +204,6 @@ EDUCATIONAL_CONTENT = {
     }
 }
 
-@st.cache_data(ttl=3600)
-def fetch_amfi_data():
-    """Fetch real-time mutual fund data from AMFI"""
-    try:
-        url = "https://www.amfiindia.com/spages/NAVAll.txt"
-        response = requests.get(url, timeout=10)
-        
-        if response.status_code == 200:
-            lines = response.text.split('\n')
-            data = []
-            current_fund_house = ""
-            
-            for line in lines[:1000]:  # Limit processing for performance
-                line = line.strip()
-                if not line:
-                    continue
-                    
-                if line and not line[0].isdigit():
-                    if "Mutual Fund" in line:
-                        current_fund_house = line
-                else:
-                    parts = line.split(';')
-                    if len(parts) >= 6:
-                        try:
-                            scheme_code = parts[0]
-                            scheme_name = parts[3]
-                            nav = float(parts[4])
-                            date = parts[5]
-                            
-                            plan_type = "Regular"
-                            expense_ratio = 2.0
-                            
-                            if "Direct" in scheme_name.upper():
-                                plan_type = "Direct"
-                                expense_ratio = 1.2
-                            
-                            data.append({
-                                'fund_house': current_fund_house,
-                                'scheme_code': scheme_code,
-                                'scheme_name': scheme_name,
-                                'nav': nav,
-                                'date': date,
-                                'plan_type': plan_type,
-                                'expense_ratio': expense_ratio
-                            })
-                        except (ValueError, IndexError):
-                            continue
-            
-            return pd.DataFrame(data).head(50)
-        else:
-            return create_sample_mf_data()
-    except Exception as e:
-        st.warning(f"Using sample data due to: {str(e)}")
-        return create_sample_mf_data()
-
-def create_sample_mf_data():
-    """Create sample mutual fund data"""
-    sample_data = []
-    fund_types = ['Large Cap', 'Mid Cap', 'Small Cap', 'Multi Cap', 'Debt', 'Hybrid']
-    fund_houses = ['HDFC', 'ICICI', 'SBI', 'Axis', 'Kotak', 'Aditya Birla']
-    
-    for i in range(30):
-        fund_house = np.random.choice(fund_houses)
-        fund_type = np.random.choice(fund_types)
-        plan_type = np.random.choice(['Direct', 'Regular'])
-        
-        sample_data.append({
-            'fund_house': f"{fund_house} Mutual Fund",
-            'scheme_code': f"MF{1000+i:04d}",
-            'scheme_name': f"{fund_house} {fund_type} Fund - {plan_type} Plan",
-            'nav': round(np.random.uniform(10, 500), 2),
-            'date': datetime.now().strftime('%d-%b-%Y'),
-            'plan_type': plan_type,
-            'expense_ratio': 1.2 if plan_type == 'Direct' else 2.0
-        })
-    
-    return pd.DataFrame(sample_data)
-
 def calculate_investment_returns(amount, years, monthly_investment, allocation, scenario='normal'):
     """Calculate investment returns for different scenarios"""
     
@@ -365,7 +280,7 @@ def main():
     st.markdown("""
     <div class="investment-card">
         <h1>🎓 Strategic Investment Teacher</h1>
-        <p>Learn to plan your financial future with real-time data and sophisticated calculations</p>
+        <p>Learn to plan your financial future with sophisticated calculations</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -373,17 +288,11 @@ def main():
     st.markdown("""
     <div class="disclaimer">
         <strong>⚠️ IMPORTANT DISCLAIMER:</strong> This application is for educational purposes only. 
-        The returns and calculations shown are based on historical data and mathematical models, and should not be considered as investment advice. 
+        The returns and calculations shown are based on hypothetical data and mathematical models, and should not be considered as investment advice. 
         Past performance does not guarantee future results. Please consult with a SEBI registered investment advisor before making any investment decisions. 
         The developers are not responsible for any financial losses incurred based on the information provided in this application.
     </div>
     """, unsafe_allow_html=True)
-    
-    # Fetch mutual fund data
-    with st.spinner("📊 Fetching real-time mutual fund data from AMFI..."):
-        mf_data = fetch_amfi_data()
-    
-    st.success(f"✅ Loaded {len(mf_data)} mutual fund schemes with real-time NAV data")
     
     # Sidebar for inputs
     st.sidebar.header("📊 Investment Parameters")
@@ -592,154 +501,101 @@ def main():
     # Charts section
     st.header("📊 Investment Projections")
     
-    if PLOTLY_AVAILABLE:
-        # Create projection data
-        years_range = list(range(1, min(time_horizon + 1, 21)))  # Limit to 20 years for performance
-        projection_data = {
-            'Year': years_range,
-            'Normal Market': [],
-            'Bull Market': [],
-            'Bear Market': []
-        }
+    # Create projection data
+    years_range = list(range(1, min(time_horizon + 1, 21)))  # Limit to 20 years for performance
+    projection_data = {
+        'Year': years_range,
+        'Normal Market': [],
+        'Bull Market': [],
+        'Bear Market': []
+    }
+    
+    for year in years_range:
+        for i, scenario in enumerate(scenarios):
+            temp_result = calculate_investment_returns(
+                initial_amount, year, monthly_investment, allocation, scenario
+            )
+            projection_data[scenario_names[i]].append(temp_result['future_value'])
+    
+    # Create chart
+    fig = go.Figure()
+    
+    for i, scenario in enumerate(scenario_names):
+        fig.add_trace(go.Scatter(
+            x=projection_data['Year'],
+            y=projection_data[scenario],
+            mode='lines+markers',
+            name=scenario,
+            line=dict(color=scenario_colors[i], width=3),
+            marker=dict(size=6)
+        ))
+    
+    # Add target line
+    fig.add_hline(
+        y=real_target,
+        line_dash="dash",
+        line_color="#ffffff",
+        annotation_text=f"Target: ₹{real_target:,.0f}"
+    )
+    
+    fig.update_layout(
+        title="Investment Growth Projection",
+        xaxis_title="Years",
+        yaxis_title="Amount (₹)",
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='white'),
+        height=500,
+        showlegend=True
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Asset allocation pie chart
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        allocation_data = pd.DataFrame({
+            'Asset Class': ['Mutual Funds', 'Stocks', 'Fixed Deposits', 'Bonds', 'AIF'],
+            'Allocation (%)': [mf_allocation, stocks_allocation, fd_allocation, bonds_allocation, aif_allocation]
+        })
         
-        for year in years_range:
-            for i, scenario in enumerate(scenarios):
-                temp_result = calculate_investment_returns(
-                    initial_amount, year, monthly_investment, allocation, scenario
-                )
-                projection_data[scenario_names[i]].append(temp_result['future_value'])
-        
-        # Create chart
-        fig = go.Figure()
-        
-        for i, scenario in enumerate(scenario_names):
-            fig.add_trace(go.Scatter(
-                x=projection_data['Year'],
-                y=projection_data[scenario],
-                mode='lines+markers',
-                name=scenario,
-                line=dict(color=scenario_colors[i], width=3),
-                marker=dict(size=6)
-            ))
-        
-        # Add target line
-        fig.add_hline(
-            y=real_target,
-            line_dash="dash",
-            line_color="#ffffff",
-            annotation_text=f"Target: ₹{real_target:,.0f}"
+        fig_pie = px.pie(
+            allocation_data, 
+            values='Allocation (%)', 
+            names='Asset Class',
+            title='Portfolio Asset Allocation'
         )
-        
-        fig.update_layout(
-            title="Investment Growth Projection",
-            xaxis_title="Years",
-            yaxis_title="Amount (₹)",
+        fig_pie.update_layout(
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='white'),
-            height=500,
-            showlegend=True
+            font=dict(color='white')
         )
-        
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # Asset allocation pie chart
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            allocation_data = pd.DataFrame({
-                'Asset Class': ['Mutual Funds', 'Stocks', 'Fixed Deposits', 'Bonds', 'AIF'],
-                'Allocation (%)': [mf_allocation, stocks_allocation, fd_allocation, bonds_allocation, aif_allocation]
-            })
-            
-            fig_pie = px.pie(
-                allocation_data, 
-                values='Allocation (%)', 
-                names='Asset Class',
-                title='Portfolio Asset Allocation'
-            )
-            fig_pie.update_layout(
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)',
-                font=dict(color='white')
-            )
-            st.plotly_chart(fig_pie, use_container_width=True)
-        
-        with col2:
-            # Risk-Return scatter plot
-            asset_data = pd.DataFrame({
-                'Asset': ['Mutual Funds', 'Stocks', 'Fixed Deposits', 'Bonds', 'AIF'],
-                'Expected Return (%)': [12, 15, 6, 7, 18],
-                'Risk (%)': [18, 25, 2, 5, 30],
-                'Allocation (%)': [mf_allocation, stocks_allocation, fd_allocation, bonds_allocation, aif_allocation]
-            })
-            
-            fig_scatter = px.scatter(
-                asset_data,
-                x='Risk (%)',
-                y='Expected Return (%)',
-                size='Allocation (%)',
-                hover_name='Asset',
-                title='Risk vs Return Profile'
-            )
-            fig_scatter.update_layout(
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)',
-                font=dict(color='white')
-            )
-            st.plotly_chart(fig_scatter, use_container_width=True)
+        st.plotly_chart(fig_pie, use_container_width=True)
     
-    else:
-        # Basic charts using streamlit native functions
-        st.subheader("Investment Growth Over Time")
-        
-        years_range = list(range(1, min(time_horizon + 1, 11)))
-        chart_data = pd.DataFrame({
-            'Year': years_range,
-            'Normal Market': [calculate_investment_returns(initial_amount, year, monthly_investment, allocation, 'normal')['future_value'] for year in years_range],
-            'Bull Market': [calculate_investment_returns(initial_amount, year, monthly_investment, allocation, 'bullish')['future_value'] for year in years_range],
-            'Bear Market': [calculate_investment_returns(initial_amount, year, monthly_investment, allocation, 'bearish')['future_value'] for year in years_range]
-        })
-        chart_data.set_index('Year', inplace=True)
-        st.line_chart(chart_data)
-        
-        # Asset allocation bar chart
-        allocation_chart = pd.DataFrame({
-            'Asset': ['Mutual Funds', 'Stocks', 'Fixed Deposits', 'Bonds', 'AIF'],
-            'Allocation': [mf_allocation, stocks_allocation, fd_allocation, bonds_allocation, aif_allocation]
-        })
-        allocation_chart.set_index('Asset', inplace=True)
-        st.bar_chart(allocation_chart)
-    
-    # Mutual funds data display
-    st.header("📈 Available Mutual Funds (Real-time AMFI Data)")
-    
-    # Filter options
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        selected_plan = st.selectbox("Plan Type", ['All', 'Direct', 'Regular'])
     with col2:
-        search_term = st.text_input("Search Fund Name")
-    with col3:
-        min_nav = st.number_input("Minimum NAV", min_value=0.0, value=0.0)
-    
-    # Filter data
-    filtered_mf = mf_data.copy()
-    if selected_plan != 'All':
-        filtered_mf = filtered_mf[filtered_mf['plan_type'] == selected_plan]
-    if search_term:
-        filtered_mf = filtered_mf[filtered_mf['scheme_name'].str.contains(search_term, case=False, na=False)]
-    if min_nav > 0:
-        filtered_mf = filtered_mf[filtered_mf['nav'] >= min_nav]
-    
-    # Display filtered data
-    if not filtered_mf.empty:
-        st.dataframe(
-            filtered_mf[['scheme_name', 'nav', 'plan_type', 'expense_ratio', 'date']].head(20),
-            use_container_width=True
+        # Risk-Return scatter plot
+        asset_data = pd.DataFrame({
+            'Asset': ['Mutual Funds', 'Stocks', 'Fixed Deposits', 'Bonds', 'AIF'],
+            'Expected Return (%)': [12, 15, 6, 7, 18],
+            'Risk (%)': [18, 25, 2, 5, 30],
+            'Allocation (%)': [mf_allocation, stocks_allocation, fd_allocation, bonds_allocation, aif_allocation]
+        })
+        
+        fig_scatter = px.scatter(
+            asset_data,
+            x='Risk (%)',
+            y='Expected Return (%)',
+            size='Allocation (%)',
+            hover_name='Asset',
+            title='Risk vs Return Profile'
         )
-    else:
-        st.warning("No funds match your search criteria.")
+        fig_scatter.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white')
+        )
+        st.plotly_chart(fig_scatter, use_container_width=True)
     
     # Investment recommendations
     st.header("💡 Investment Recommendations")
