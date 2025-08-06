@@ -432,7 +432,6 @@ def main():
     
     scenarios = ['normal', 'bullish', 'bearish']
     scenario_names = ['Normal Market', 'Bull Market', 'Bear Market']
-    scenario_colors = ['#3b82f6', '#10b981', '#ef4444']
     results = {}
     
     for scenario in scenarios:
@@ -488,7 +487,7 @@ def main():
     
     # Time to goal calculation
     st.subheader("⏰ Time to Reach Goal")
-    if initial_amount > 0:
+    if initial_amount > 0 and normal_result['portfolio_return'] > 0:
         years_needed = np.log(real_target / initial_amount) / np.log(1 + normal_result['portfolio_return'])
         st.markdown(f"""
         <div class="info-box">
@@ -499,7 +498,7 @@ def main():
     # Charts section
     st.header("📊 Investment Projections")
     
-    # Create projection data
+    # Create projection data for native Streamlit charts
     years_range = list(range(1, min(time_horizon + 1, 21)))  # Limit to 20 years for performance
     projection_data = {
         'Year': years_range,
@@ -514,86 +513,29 @@ def main():
                 initial_amount, year, monthly_investment, allocation, scenario
             )
             projection_data[scenario_names[i]].append(temp_result['future_value'])
-    
-    # Create chart
-    fig = go.Figure()
-    
-    for i, scenario in enumerate(scenario_names):
-        fig.add_trace(go.Scatter(
-            x=projection_data['Year'],
-            y=projection_data[scenario],
-            mode='lines+markers',
-            name=scenario,
-            line=dict(color=scenario_colors[i], width=3),
-            marker=dict(size=6)
-        ))
-    
-    # Add target line
-    fig.add_hline(
-        y=real_target,
-        line_dash="dash",
-        line_color="#ffffff",
-        annotation_text=f"Target: ₹{real_target:,.0f}"
-    )
-    
-    fig.update_layout(
-        title="Investment Growth Projection",
-        xaxis_title="Years",
-        yaxis_title="Amount (₹)",
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white'),
-        height=500,
-        showlegend=True
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
-    
-    # Asset allocation pie chart
+
+    df_projection = pd.DataFrame(projection_data)
+    df_projection.set_index('Year', inplace=True)
+
+    st.subheader("Investment Growth Projection")
+    st.line_chart(df_projection)
+
     col1, col2 = st.columns(2)
     
     with col1:
+        st.subheader("Portfolio Asset Allocation")
         allocation_data = pd.DataFrame({
-            'Asset Class': ['Mutual Funds', 'Stocks', 'Fixed Deposits', 'Bonds', 'AIF'],
             'Allocation (%)': [mf_allocation, stocks_allocation, fd_allocation, bonds_allocation, aif_allocation]
-        })
-        
-        fig_pie = px.pie(
-            allocation_data, 
-            values='Allocation (%)', 
-            names='Asset Class',
-            title='Portfolio Asset Allocation'
-        )
-        fig_pie.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='white')
-        )
-        st.plotly_chart(fig_pie, use_container_width=True)
+        }, index=['Mutual Funds', 'Stocks', 'Fixed Deposits', 'Bonds', 'AIF'])
+        st.bar_chart(allocation_data)
     
     with col2:
-        # Risk-Return scatter plot
+        st.subheader("Risk vs Return Profile")
         asset_data = pd.DataFrame({
-            'Asset': ['Mutual Funds', 'Stocks', 'Fixed Deposits', 'Bonds', 'AIF'],
             'Expected Return (%)': [12, 15, 6, 7, 18],
-            'Risk (%)': [18, 25, 2, 5, 30],
-            'Allocation (%)': [mf_allocation, stocks_allocation, fd_allocation, bonds_allocation, aif_allocation]
-        })
-        
-        fig_scatter = px.scatter(
-            asset_data,
-            x='Risk (%)',
-            y='Expected Return (%)',
-            size='Allocation (%)',
-            hover_name='Asset',
-            title='Risk vs Return Profile'
-        )
-        fig_scatter.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='white')
-        )
-        st.plotly_chart(fig_scatter, use_container_width=True)
+            'Risk (%)': [18, 25, 2, 5, 30]
+        }, index=['Mutual Funds', 'Stocks', 'Fixed Deposits', 'Bonds', 'AIF'])
+        st.scatter_chart(asset_data, x='Risk (%)', y='Expected Return (%)')
     
     # Investment recommendations
     st.header("💡 Investment Recommendations")
@@ -720,5 +662,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
