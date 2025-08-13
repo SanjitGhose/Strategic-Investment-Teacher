@@ -143,18 +143,18 @@ EDUCATIONAL_CONTENT = {
     "mutual_funds": {
         "title": "Mutual Funds",
         "content": """
-*What are Mutual Funds?*
+**What are Mutual Funds?**
 - Pool of money from many investors
 - Professionally managed by fund managers
 - Diversified portfolio of stocks, bonds, or other securities
 - Suitable for long-term wealth creation
 
-*Types:*
+**Types:**
 - Equity Funds (High risk, high return)
 - Debt Funds (Low risk, moderate return)
 - Hybrid Funds (Balanced approach)
 
-*Risk Factors:*
+**Risk Factors:**
 - Market risk varies with economic conditions
 - Bull markets: Lower perceived risk due to optimism
 - Bear markets: Higher risk due to uncertainty
@@ -163,13 +163,13 @@ EDUCATIONAL_CONTENT = {
     "stocks": {
         "title": "Stocks",
         "content": """
-*What are Stocks?*
+**What are Stocks?**
 - Ownership shares in a company
 - Potential for high returns but volatile
 - Requires research and market knowledge
 - Best for long-term investment
 
-*Key Points:*
+**Key Points:**
 - Dividend income + Capital appreciation
 - Market risk varies significantly with conditions
 - Liquidity is good
@@ -179,13 +179,13 @@ EDUCATIONAL_CONTENT = {
     "fd": {
         "title": "Fixed Deposits",
         "content": """
-*What are Fixed Deposits?*
+**What are Fixed Deposits?**
 - Safe investment with guaranteed returns
 - Fixed interest rate for specific tenure
 - No market risk involved
 - Lower returns compared to equity
 
-*Features:*
+**Features:**
 - Capital protection (risk remains constant)
 - Predictable returns
 - Various tenure options
@@ -195,13 +195,13 @@ EDUCATIONAL_CONTENT = {
     "bonds": {
         "title": "Bonds",
         "content": """
-*What are Bonds?*
+**What are Bonds?**
 - Debt instruments issued by companies/government
 - Regular interest payments (coupon)
 - Lower risk than stocks
 - Good for steady income
 
-*Risk Variations:*
+**Risk Variations:**
 - Interest rate risk varies with market conditions
 - Credit risk can change with issuer's financial health
 - Duration risk affects bond prices
@@ -210,13 +210,13 @@ EDUCATIONAL_CONTENT = {
     "aif": {
         "title": "Alternative Investment Funds",
         "content": """
-*What are AIFs?*
+**What are AIFs?**
 - Privately pooled investment funds
 - Higher minimum investment
 - Less regulated than mutual funds
 - Potential for higher returns
 
-*Risk Profile:*
+**Risk Profile:**
 - Highly sensitive to market conditions
 - Risk multiplies in bear markets
 - Can provide hedge in specific strategies
@@ -225,17 +225,17 @@ EDUCATIONAL_CONTENT = {
     "sharpe_ratio": {
         "title": "Sharpe Ratio",
         "content": """
-*What is Sharpe Ratio?*
+**What is Sharpe Ratio?**
 - Measures risk-adjusted return
 - Formula: (Portfolio Return - Risk-free Rate) / Standard Deviation
 - Higher ratio = Better risk-adjusted performance
 
-*Interpretation:*
+**Interpretation:**
 - > 1.0: Excellent risk-adjusted returns
 - 0.5-1.0: Good risk-adjusted returns
 - < 0.5: Poor risk-adjusted returns
 
-*Investment Horizon Impact:*
+**Investment Horizon Impact:**
 - Calculated for your specific investment period
 - Helps compare different strategies
 - Time-weighted risk assessment
@@ -741,11 +741,19 @@ def main():
             shortfall = real_target - normal_result['future_value']
             additional_monthly_needed = shortfall / (time_horizon * 12)
             
+            # Fixed the calculation error in the original code
+            additional_years_needed = 0
+            try:
+                if normal_result['portfolio_return'] > 0:
+                    additional_years_needed = (np.log(real_target/normal_result['future_value']) / np.log(1 + normal_result['portfolio_return']))
+            except:
+                additional_years_needed = 0
+            
             st.markdown(f"""
             <div class="warning-message">
                 You're on the right track! To reach your goal:<br>
                 • Increase monthly SIP by ₹{additional_monthly_needed:,.0f}<br>
-                • Or extend timeline by {((real_target/normal_result['future_value'])(1/normal_result['portfolio_return']) - time_horizon):.1f} years<br>
+                • Or extend timeline by {additional_years_needed:.1f} years<br>
                 • Consider more aggressive allocation<br><br>
                 <strong>Shortfall: ₹{shortfall:,.0f}</strong>
             </div>
@@ -1066,8 +1074,7 @@ def main():
     ])
     
     tips = {
-        "Risk Management": "Diversify across asset classes and review your risk tolerance annually. Your current portfolio risk varies from {:.1f}% to {:.1f}% across market scenarios.".format(
-            results['bullish']['portfolio_risk']*100, results['bearish']['portfolio_risk']*100),
+        "Risk Management": f"Diversify across asset classes and review your risk tolerance annually. Your current portfolio risk varies from {results['bullish']['portfolio_risk']*100:.1f}% to {results['bearish']['portfolio_risk']*100:.1f}% across market scenarios.",
         "Tax Planning": "Consider ELSS funds for tax saving under 80C. Debt funds held >3 years get indexation benefits.",
         "Market Timing": "Time in the market beats timing the market. Your SIP approach helps average market volatility.",
         "Rebalancing": "Rebalance your portfolio annually or when allocation deviates by >5% from target.",
@@ -1097,5 +1104,5 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
