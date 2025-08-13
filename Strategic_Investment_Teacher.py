@@ -7,25 +7,18 @@ warnings.filterwarnings('ignore')
 
 # Page configuration
 st.set_page_config(
-    page_title="Strategic Investment Teacher Pro",
-    page_icon="🚀",
+    page_title="Strategic Investment Planner",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for dark theme and professional styling with animations
+# Professional CSS styling
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-* {
-    font-family: 'Inter', sans-serif;
-}
-
 .main {
     padding-top: 1rem;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    min-height: 100vh;
+    background-color: #0e1117;
 }
 
 .investment-card {
@@ -34,54 +27,17 @@ st.markdown("""
     border-radius: 1rem;
     color: white;
     margin: 1rem 0;
-    border: 2px solid #475569;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
-    transition: all 0.3s ease;
-}
-
-.investment-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.6);
+    border: 1px solid #475569;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .metric-card {
     background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
     padding: 1.2rem;
     border-radius: 0.8rem;
-    border: 2px solid #6b7280;
+    border: 1px solid #6b7280;
     margin: 0.3rem 0;
     color: white;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.metric-card:hover {
-    transform: scale(1.02);
-    border-color: #8b5cf6;
-}
-
-.metric-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(139, 92, 246, 0.1), transparent);
-    transform: rotate(45deg);
-    transition: all 0.6s ease;
-    opacity: 0;
-}
-
-.metric-card:hover::before {
-    animation: shine 1s ease-in-out;
-    opacity: 1;
-}
-
-@keyframes shine {
-    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
 }
 
 .metric-title {
@@ -100,18 +56,12 @@ st.markdown("""
 
 .disclaimer {
     background: linear-gradient(135deg, #451a03 0%, #78350f 100%);
-    border: 2px solid #d97706;
+    border: 1px solid #d97706;
     padding: 1.2rem;
     border-radius: 0.8rem;
     margin: 1rem 0;
     color: white;
     font-size: 0.95rem;
-    animation: pulse-warning 2s infinite;
-}
-
-@keyframes pulse-warning {
-    0%, 100% { border-color: #d97706; }
-    50% { border-color: #f59e0b; }
 }
 
 .success-message {
@@ -122,17 +72,11 @@ st.markdown("""
     text-align: center;
     font-weight: bold;
     font-size: 1.1rem;
-    border: 2px solid #10b981;
+    border: 1px solid #10b981;
     margin: 1rem 0;
-    animation: success-glow 2s ease-in-out infinite alternate;
 }
 
-@keyframes success-glow {
-    from { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
-    to { box-shadow: 0 0 30px rgba(16, 185, 129, 0.6); }
-}
-
-.motivational-message {
+.warning-message {
     background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
     padding: 1.5rem;
     border-radius: 0.8rem;
@@ -140,14 +84,8 @@ st.markdown("""
     text-align: center;
     font-weight: bold;
     font-size: 1.1rem;
-    border: 2px solid #f59e0b;
+    border: 1px solid #f59e0b;
     margin: 1rem 0;
-    animation: motivate-pulse 1.5s ease-in-out infinite alternate;
-}
-
-@keyframes motivate-pulse {
-    from { transform: scale(1); }
-    to { transform: scale(1.02); }
 }
 
 .info-box {
@@ -155,13 +93,8 @@ st.markdown("""
     padding: 1.2rem;
     border-radius: 0.8rem;
     color: white;
-    border: 2px solid #6366f1;
+    border: 1px solid #6366f1;
     margin: 0.5rem 0;
-    transition: all 0.3s ease;
-}
-
-.info-box:hover {
-    background: linear-gradient(135deg, #3730a3 0%, #4338ca 100%);
 }
 
 .debt-card {
@@ -169,14 +102,8 @@ st.markdown("""
     padding: 1.5rem;
     border-radius: 0.8rem;
     color: white;
-    border: 2px solid #ea580c;
+    border: 1px solid #ea580c;
     margin: 1rem 0;
-    animation: debt-warning 3s ease-in-out infinite;
-}
-
-@keyframes debt-warning {
-    0%, 100% { border-color: #ea580c; }
-    50% { border-color: #f97316; }
 }
 
 .scenario-header {
@@ -186,13 +113,7 @@ st.markdown("""
     color: white;
     text-align: center;
     margin: 0.5rem 0;
-    border: 2px solid #6366f1;
-    transition: all 0.3s ease;
-}
-
-.scenario-header:hover {
-    background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
-    transform: translateY(-2px);
+    border: 1px solid #6366f1;
 }
 
 .time-to-goal {
@@ -201,7 +122,7 @@ st.markdown("""
     border-radius: 0.8rem;
     color: white;
     text-align: center;
-    border: 2px solid #10b981;
+    border: 1px solid #10b981;
     margin: 0.5rem 0;
     font-weight: bold;
 }
@@ -211,61 +132,16 @@ st.markdown("""
     padding: 1.2rem;
     border-radius: 0.8rem;
     color: white;
-    border: 2px solid #a855f7;
+    border: 1px solid #a855f7;
     margin: 0.5rem 0;
-    transition: all 0.3s ease;
-}
-
-.educational-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
-}
-
-.stButton > button {
-    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
-    border: none;
-    color: white;
-    font-weight: bold;
-    border-radius: 0.8rem;
-    padding: 0.8rem 2rem;
-    transition: all 0.3s ease;
-}
-
-.stButton > button:hover {
-    background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(124, 58, 237, 0.4);
-}
-
-.floating-emoji {
-    font-size: 2rem;
-    animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-}
-
-.progress-bar {
-    background: linear-gradient(90deg, #10b981, #34d399);
-    height: 8px;
-    border-radius: 4px;
-    margin: 10px 0;
-    animation: progress-shine 2s linear infinite;
-}
-
-@keyframes progress-shine {
-    0% { background-position: -200px 0; }
-    100% { background-position: 200px 0; }
 }
 </style>
 """, unsafe_allow_html=True)
 
-# Educational pop-ups data
+# Educational content
 EDUCATIONAL_CONTENT = {
     "mutual_funds": {
-        "title": "📊 Mutual Funds",
+        "title": "Mutual Funds",
         "content": """
 *What are Mutual Funds?*
 - Pool of money from many investors
@@ -285,7 +161,7 @@ EDUCATIONAL_CONTENT = {
         """
     },
     "stocks": {
-        "title": "📈 Stocks",
+        "title": "Stocks",
         "content": """
 *What are Stocks?*
 - Ownership shares in a company
@@ -301,7 +177,7 @@ EDUCATIONAL_CONTENT = {
         """
     },
     "fd": {
-        "title": "🏛 Fixed Deposits",
+        "title": "Fixed Deposits",
         "content": """
 *What are Fixed Deposits?*
 - Safe investment with guaranteed returns
@@ -317,7 +193,7 @@ EDUCATIONAL_CONTENT = {
         """
     },
     "bonds": {
-        "title": "📜 Bonds",
+        "title": "Bonds",
         "content": """
 *What are Bonds?*
 - Debt instruments issued by companies/government
@@ -332,7 +208,7 @@ EDUCATIONAL_CONTENT = {
         """
     },
     "aif": {
-        "title": "🎯 Alternative Investment Funds",
+        "title": "Alternative Investment Funds",
         "content": """
 *What are AIFs?*
 - Privately pooled investment funds
@@ -347,7 +223,7 @@ EDUCATIONAL_CONTENT = {
         """
     },
     "sharpe_ratio": {
-        "title": "📐 Sharpe Ratio",
+        "title": "Sharpe Ratio",
         "content": """
 *What is Sharpe Ratio?*
 - Measures risk-adjusted return
@@ -466,7 +342,7 @@ def calculate_time_to_goal(target_amount, initial_amount, monthly_investment, po
     effective_monthly = max(0, monthly_investment - debt_emi)
     
     if portfolio_return <= 0 or (initial_amount <= 0 and effective_monthly <= 0):
-        return float('inf')
+        return None
     
     if initial_amount >= target_amount:
         return 0
@@ -490,19 +366,19 @@ def calculate_time_to_goal(target_amount, initial_amount, monthly_investment, po
                     years_needed = months / 12
                     break
             else:
-                years_needed = float('inf')
+                years_needed = None
         else:
             # Only SIP
             months_needed = np.log(1 + (target_amount * monthly_return) / effective_monthly) / np.log(1 + monthly_return)
             years_needed = months_needed / 12
     
-    return years_needed if years_needed != float('inf') else None
+    return years_needed if years_needed and years_needed < 100 else None
 
 def show_educational_popup(content_key):
     """Show educational content in expander"""
     if content_key in EDUCATIONAL_CONTENT:
         content = EDUCATIONAL_CONTENT[content_key]
-        with st.expander(f"💡 Learn about {content['title']}", expanded=False):
+        with st.expander(f"Learn about {content['title']}", expanded=False):
             st.markdown(f"""
             <div class="educational-card">
             {content['content']}
@@ -510,7 +386,7 @@ def show_educational_popup(content_key):
             """, unsafe_allow_html=True)
 
 def create_metric_card(title, value, color="#ffffff"):
-    """Create an enhanced metric card with animations"""
+    """Create a professional metric card"""
     return f"""
     <div class="metric-card">
         <h4 class="metric-title">{title}</h4>
@@ -519,30 +395,30 @@ def create_metric_card(title, value, color="#ffffff"):
     """
 
 def main():
-    # Animated Header
+    # Header
     st.markdown("""
     <div class="investment-card">
-        <h1><span class="floating-emoji">🚀</span> Strategic Investment Teacher Pro</h1>
-        <p>Master your financial future with AI-powered investment planning & scenario analysis</p>
+        <h1>Strategic Investment Planner</h1>
+        <p>Professional investment planning with advanced scenario analysis and debt integration</p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Enhanced Disclaimer
+    # Disclaimer
     st.markdown("""
     <div class="disclaimer">
-        <strong>⚠ IMPORTANT DISCLAIMER:</strong> This application is for educational purposes only.
+        <strong>IMPORTANT DISCLAIMER:</strong> This application is for educational purposes only.
         The returns and calculations shown are based on mathematical models and should not be considered as investment advice.
         Past performance does not guarantee future results. Please consult with a SEBI registered investment advisor.
         <br><br>
-        <strong>🎯 New Features:</strong> Now includes debt analysis, scenario-based risk modeling, and time-weighted Sharpe ratios!
+        <strong>Features:</strong> Includes debt analysis, scenario-based risk modeling, and time-weighted Sharpe ratios.
     </div>
     """, unsafe_allow_html=True)
     
     # Sidebar for inputs
-    st.sidebar.header("🎯 Investment Parameters")
+    st.sidebar.header("Investment Parameters")
     
     # Investment type selection
-    st.sidebar.subheader("💰 Investment Strategy")
+    st.sidebar.subheader("Investment Strategy")
     investment_type = st.sidebar.radio(
         "Choose your investment approach:",
         ["Lump Sum", "SIP (Systematic Investment Plan)", "Hybrid (Lump Sum + SIP)"],
@@ -555,7 +431,7 @@ def main():
     
     if investment_type == "Lump Sum":
         initial_amount = st.sidebar.number_input(
-            "💰 Total Lump Sum Investment (₹)",
+            "Total Lump Sum Investment (₹)",
             min_value=1000,
             value=100000,
             step=5000,
@@ -565,7 +441,7 @@ def main():
     
     elif investment_type == "SIP (Systematic Investment Plan)":
         monthly_investment = st.sidebar.number_input(
-            "📅 Monthly SIP Amount (₹)",
+            "Monthly SIP Amount (₹)",
             min_value=500,
             value=5000,
             step=500,
@@ -575,14 +451,14 @@ def main():
     
     else:  # Hybrid
         initial_amount = st.sidebar.number_input(
-            "💰 Initial Lump Sum Investment (₹)",
+            "Initial Lump Sum Investment (₹)",
             min_value=1000,
             value=50000,
             step=5000,
             help="Enter your initial lump sum amount"
         )
         monthly_investment = st.sidebar.number_input(
-            "📅 Monthly SIP Amount (₹)",
+            "Monthly SIP Amount (₹)",
             min_value=500,
             value=5000,
             step=500,
@@ -591,15 +467,15 @@ def main():
     
     # Time horizon
     time_horizon = st.sidebar.slider(
-        "⏱ Investment Time Horizon (Years)",
+        "Investment Time Horizon (Years)",
         min_value=1,
         max_value=30,
         value=10,
         help="How long do you plan to invest?"
     )
     
-    # Debt Management Section (NEW)
-    st.sidebar.subheader("💳 Debt Analysis (Optional)")
+    # Debt Management Section
+    st.sidebar.subheader("Debt Analysis (Optional)")
     has_debt = st.sidebar.checkbox("I have existing debt obligations", help="Check if you have loans/debt to consider")
     
     debt_amount = 0
@@ -609,7 +485,7 @@ def main():
     
     if has_debt:
         debt_amount = st.sidebar.number_input(
-            "💳 Total Debt Outstanding (₹)",
+            "Total Debt Outstanding (₹)",
             min_value=0,
             value=0,
             step=10000,
@@ -617,7 +493,7 @@ def main():
         )
         
         debt_rate = st.sidebar.slider(
-            "📈 Debt Interest Rate (%)",
+            "Debt Interest Rate (%)",
             min_value=5.0,
             max_value=25.0,
             value=12.0,
@@ -632,7 +508,7 @@ def main():
         
         if debt_emi_option == "Let me enter EMI":
             debt_emi = st.sidebar.number_input(
-                "💰 Monthly EMI (₹)",
+                "Monthly EMI (₹)",
                 min_value=0,
                 value=0,
                 step=1000,
@@ -640,7 +516,7 @@ def main():
             )
         else:
             debt_tenure = st.sidebar.number_input(
-                "⏱ Debt Tenure (Years)",
+                "Debt Tenure (Years)",
                 min_value=1,
                 max_value=30,
                 value=5,
@@ -657,20 +533,20 @@ def main():
                 
                 st.sidebar.markdown(f"""
                 <div class="debt-card">
-                    <strong>📊 Calculated EMI:</strong><br>
+                    <strong>Calculated EMI:</strong><br>
                     ₹{debt_emi:,.0f} per month
                 </div>
                 """, unsafe_allow_html=True)
     
     # Investment goals
-    st.sidebar.subheader("🎯 Investment Goals")
+    st.sidebar.subheader("Investment Goals")
     goal_type = st.sidebar.selectbox(
         "Select Your Primary Goal",
         ["Retirement", "Child Education", "House Purchase", "Wealth Creation", "Emergency Fund", "Debt Freedom"]
     )
     
     target_amount = st.sidebar.number_input(
-        "🎯 Target Amount (₹)",
+        "Target Amount (₹)",
         min_value=50000,
         value=1000000,
         step=50000,
@@ -679,7 +555,7 @@ def main():
     
     # Inflation adjustment
     inflation_rate = st.sidebar.slider(
-        "📈 Expected Inflation Rate (%)",
+        "Expected Inflation Rate (%)",
         min_value=3.0,
         max_value=8.0,
         value=4.8,
@@ -691,17 +567,17 @@ def main():
     
     st.sidebar.markdown(f"""
     <div class="info-box">
-        <strong>🎯 Inflation Adjusted Target:</strong><br>
+        <strong>Inflation Adjusted Target:</strong><br>
         ₹{real_target:,.0f}
     </div>
     """, unsafe_allow_html=True)
     
     # Asset allocation
-    st.sidebar.subheader("📊 Portfolio Allocation")
+    st.sidebar.subheader("Portfolio Allocation")
     
     # Preset allocation options
     preset = st.sidebar.selectbox(
-        "🎨 Choose Preset or Customize",
+        "Choose Preset or Customize",
         ["Custom", "Conservative", "Balanced", "Aggressive", "Ultra Aggressive"]
     )
     
@@ -742,7 +618,7 @@ def main():
     total_allocation = mf_allocation + stocks_allocation + fd_allocation + bonds_allocation + aif_allocation
     
     if total_allocation != 100:
-        st.sidebar.error(f"⚠ Total allocation should be 100%. Current: {total_allocation}%")
+        st.sidebar.error(f"Total allocation should be 100%. Current: {total_allocation}%")
         st.stop()
     
     allocation = {
@@ -758,19 +634,19 @@ def main():
     if total_monthly_outflow > 0:
         st.sidebar.markdown(f"""
         <div class="info-box">
-            <strong>💰 Monthly Financial Summary:</strong><br>
+            <strong>Monthly Financial Summary:</strong><br>
             Investment: ₹{monthly_investment:,.0f}<br>
             Debt EMI: ₹{debt_emi:,.0f}<br>
             <strong>Total Outflow: ₹{total_monthly_outflow:,.0f}</strong>
         </div>
         """, unsafe_allow_html=True)
     
-    # Main calculations with enhanced scenarios
-    st.header("📊 Advanced Investment Analysis")
+    # Main calculations
+    st.header("Investment Analysis Results")
     
     col1, col2, col3 = st.columns(3)
     scenarios = ['normal', 'bullish', 'bearish']
-    scenario_names = ['📊 Normal Market', '🚀 Bull Market', '📉 Bear Market']
+    scenario_names = ['Normal Market', 'Bull Market', 'Bear Market']
     scenario_descriptions = [
         'Stable market conditions with average returns',
         'Rising market with above-average returns and lower risk',
@@ -791,7 +667,7 @@ def main():
             results[scenario]['portfolio_return'], debt_emi
         )
     
-    # Display enhanced results
+    # Display results
     for i, scenario in enumerate(scenarios):
         result = results[scenario]
         time_to_goal = time_to_goals[scenario]
@@ -826,14 +702,14 @@ def main():
             if time_to_goal and time_to_goal < 100:
                 st.markdown(f"""
                 <div class="time-to-goal">
-                    ⏱ Time to Goal<br>
+                    Time to Goal<br>
                     <strong>{time_to_goal:.1f} years</strong>
                 </div>
                 """, unsafe_allow_html=True)
             else:
                 st.markdown(f"""
-                <div style="background: #7c2d12; padding: 1rem; border-radius: 0.8rem; color: white; text-align: center; border: 2px solid #ea580c; margin: 0.5rem 0;">
-                    ⚠ Goal Not Achievable<br>
+                <div style="background: #7c2d12; padding: 1rem; border-radius: 0.8rem; color: white; text-align: center; border: 1px solid #ea580c; margin: 0.5rem 0;">
+                    Goal Not Achievable<br>
                     <strong>Review Strategy</strong>
                 </div>
                 """, unsafe_allow_html=True)
@@ -844,7 +720,7 @@ def main():
                     f"₹{result['effective_monthly_investment']:,.0f}/mo", "#f97316"), unsafe_allow_html=True)
     
     # Goal achievement analysis
-    st.header("🎯 Goal Achievement Analysis")
+    st.header("Goal Achievement Analysis")
     
     normal_result = results['normal']
     normal_time = time_to_goals['normal']
@@ -855,7 +731,7 @@ def main():
         if normal_result['future_value'] >= real_target:
             st.markdown(f"""
             <div class="success-message">
-                🎉 Congratulations! Your investment plan will achieve your goal!<br>
+                Congratulations! Your investment plan will achieve your goal!<br>
                 Target: ₹{real_target:,.0f}<br>
                 Projected: ₹{normal_result['future_value']:,.0f}<br>
                 <strong>Surplus: ₹{normal_result['future_value'] - real_target:,.0f}</strong>
@@ -866,8 +742,8 @@ def main():
             additional_monthly_needed = shortfall / (time_horizon * 12)
             
             st.markdown(f"""
-            <div class="motivational-message">
-                💪 You're on the right track! To reach your goal:<br>
+            <div class="warning-message">
+                You're on the right track! To reach your goal:<br>
                 • Increase monthly SIP by ₹{additional_monthly_needed:,.0f}<br>
                 • Or extend timeline by {((real_target/normal_result['future_value'])(1/normal_result['portfolio_return']) - time_horizon):.1f} years<br>
                 • Consider more aggressive allocation<br><br>
@@ -879,7 +755,7 @@ def main():
         # Scenario comparison
         st.markdown("""
         <div class="info-box">
-            <h4>📊 Scenario Comparison</h4>
+            <h4>Scenario Comparison</h4>
         </div>
         """, unsafe_allow_html=True)
         
@@ -901,7 +777,7 @@ def main():
     
     # Debt Impact Analysis (if applicable)
     if debt_emi > 0:
-        st.header("💳 Debt Impact Analysis")
+        st.header("Debt Impact Analysis")
         
         col1, col2, col3 = st.columns(3)
         
@@ -909,7 +785,7 @@ def main():
             total_debt_interest = (debt_emi * debt_tenure * 12) - debt_amount if debt_tenure > 0 else 0
             st.markdown(f"""
             <div class="debt-card">
-                <h4>📊 Debt Summary</h4>
+                <h4>Debt Summary</h4>
                 Outstanding: ₹{debt_amount:,.0f}<br>
                 Monthly EMI: ₹{debt_emi:,.0f}<br>
                 Interest Rate: {debt_rate:.1f}%<br>
@@ -926,7 +802,7 @@ def main():
             opportunity_cost = no_debt_result['future_value'] - normal_result['future_value']
             st.markdown(f"""
             <div class="debt-card">
-                <h4>💰 Opportunity Cost</h4>
+                <h4>Opportunity Cost</h4>
                 Without Debt: ₹{no_debt_result['future_value']:,.0f}<br>
                 With Debt: ₹{normal_result['future_value']:,.0f}<br>
                 <strong>Lost Potential: ₹{opportunity_cost:,.0f}</strong>
@@ -943,15 +819,15 @@ def main():
             
             st.markdown(f"""
             <div class="debt-card">
-                <h4>🎯 Recommendation</h4>
+                <h4>Recommendation</h4>
                 Debt Cost: {debt_roi*100:.1f}%<br>
                 Investment Return: {portfolio_roi*100:.1f}%<br>
                 <strong style="color: {color};">{recommendation}</strong>
             </div>
             """, unsafe_allow_html=True)
     
-    # Enhanced Charts Section
-    st.header("📈 Investment Projections & Analytics")
+    # Charts Section
+    st.header("Investment Projections & Analytics")
     
     # Create projection data
     years_range = list(range(1, min(time_horizon + 1, 21)))
@@ -975,11 +851,11 @@ def main():
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("📊 Growth Projection")
+        st.subheader("Growth Projection")
         st.line_chart(df_projection)
         
         # Risk-Return scatter
-        st.subheader("⚖ Risk vs Return Analysis")
+        st.subheader("Risk vs Return Analysis")
         risk_return_data = pd.DataFrame({
             'Expected Return (%)': [
                 results['normal']['portfolio_return'] * 100,
@@ -995,14 +871,14 @@ def main():
         st.scatter_chart(risk_return_data, x='Risk (%)', y='Expected Return (%)')
     
     with col2:
-        st.subheader("🥧 Portfolio Allocation")
+        st.subheader("Portfolio Allocation")
         allocation_data = pd.DataFrame({
             'Allocation (%)': [mf_allocation, stocks_allocation, fd_allocation, bonds_allocation, aif_allocation]
         }, index=['Mutual Funds', 'Stocks', 'Fixed Deposits', 'Bonds', 'AIF'])
         st.bar_chart(allocation_data)
         
         # Sharpe ratio comparison
-        st.subheader("📐 Time-Adjusted Sharpe Ratios")
+        st.subheader("Time-Adjusted Sharpe Ratios")
         sharpe_data = pd.DataFrame({
             'Sharpe Ratio': [
                 results['normal']['time_adjusted_sharpe'],
@@ -1012,16 +888,16 @@ def main():
         }, index=['Normal', 'Bull', 'Bear'])
         st.bar_chart(sharpe_data)
     
-    # Enhanced Learning Section
-    st.header("🎓 Investment Education Hub")
+    # Learning Section
+    st.header("Investment Education Hub")
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        if st.button("🛡 Risk Management", type="secondary"):
+        if st.button("Risk Management", type="secondary"):
             st.markdown(f"""
             <div class="educational-card">
-                <h4>🛡 Risk Management in Different Markets</h4>
+                <h4>Risk Management in Different Markets</h4>
                 <strong>Your Portfolio Risk Analysis:</strong><br>
                 • Normal Market: {results['normal']['portfolio_risk']*100:.1f}%<br>
                 • Bull Market: {results['bullish']['portfolio_risk']*100:.1f}%<br>
@@ -1036,11 +912,11 @@ def main():
             """, unsafe_allow_html=True)
     
     with col2:
-        if st.button("📐 Sharpe Ratio Deep Dive", type="secondary"):
+        if st.button("Sharpe Ratio Deep Dive", type="secondary"):
             show_educational_popup("sharpe_ratio")
             st.markdown(f"""
             <div class="educational-card">
-                <h4>📐 Your Sharpe Ratio Analysis</h4>
+                <h4>Your Sharpe Ratio Analysis</h4>
                 <strong>Time-Adjusted Sharpe Ratios:</strong><br>
                 • Normal: {results['normal']['time_adjusted_sharpe']:.2f}<br>
                 • Bull: {results['bullish']['time_adjusted_sharpe']:.2f}<br>
@@ -1052,11 +928,11 @@ def main():
             """, unsafe_allow_html=True)
     
     with col3:
-        if st.button("💰 Debt vs Investment", type="secondary"):
+        if st.button("Debt vs Investment", type="secondary"):
             debt_analysis = debt_rate - (normal_result['portfolio_return'] * 100) if has_debt else 0
             st.markdown(f"""
             <div class="educational-card">
-                <h4>💰 Debt vs Investment Strategy</h4>
+                <h4>Debt vs Investment Strategy</h4>
                 {"<strong>Your Situation:</strong><br>" if has_debt else ""}
                 {f"• Debt Interest: {debt_rate:.1f}%<br>" if has_debt else ""}
                 {f"• Portfolio Return: {normal_result['portfolio_return']*100:.1f}%<br>" if has_debt else ""}
@@ -1071,12 +947,12 @@ def main():
             """, unsafe_allow_html=True)
     
     # Optimization Suggestions
-    st.header("🚀 Portfolio Optimization Suggestions")
+    st.header("Portfolio Optimization Suggestions")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("📊 Allocation Recommendations")
+        st.subheader("Allocation Recommendations")
         
         # Age-based allocation suggestion
         user_age = st.number_input("Enter your age for personalized advice", min_value=18, max_value=80, value=35)
@@ -1085,7 +961,7 @@ def main():
         
         st.markdown(f"""
         <div class="info-box">
-            <h4>🎯 Age-Based Allocation (Rule of Thumb)</h4>
+            <h4>Age-Based Allocation (Rule of Thumb)</h4>
             <strong>Age {user_age} Suggestion:</strong><br>
             • Equity (MF + Stocks + AIF): {equity_percent}%<br>
             • Debt (FD + Bonds): {debt_percent}%<br><br>
@@ -1097,7 +973,7 @@ def main():
         """, unsafe_allow_html=True)
     
     with col2:
-        st.subheader("⏰ Timeline Optimization")
+        st.subheader("Timeline Optimization")
         
         optimal_scenarios = []
         for scenario in scenarios:
@@ -1109,15 +985,15 @@ def main():
             best_scenario = min(optimal_scenarios, key=lambda x: x[1])
             st.markdown(f"""
             <div class="success-message">
-                🏆 Best Case Scenario<br>
+                Best Case Scenario<br>
                 <strong>{best_scenario[0]}</strong><br>
                 Goal achievable in {best_scenario[1]:.1f} years
             </div>
             """, unsafe_allow_html=True)
         else:
             st.markdown("""
-            <div class="motivational-message">
-                💡 Consider These Optimizations:<br>
+            <div class="warning-message">
+                Consider These Optimizations:<br>
                 • Increase monthly investment<br>
                 • Extend timeline<br>
                 • Higher equity allocation<br>
@@ -1126,9 +1002,9 @@ def main():
             """, unsafe_allow_html=True)
     
     # Export Results
-    st.header("📋 Investment Report Generator")
+    st.header("Investment Report Generator")
     
-    if st.button("🚀 Generate Comprehensive Report", type="primary"):
+    if st.button("Generate Comprehensive Report", type="primary"):
         report_data = {
             'Investment Profile': {
                 'Strategy': investment_type,
@@ -1174,49 +1050,48 @@ def main():
         
         st.json(report_data)
         
-        # Success message with animation
+        # Success message
         st.markdown("""
         <div class="success-message">
-            🎉 Report Generated Successfully!<br>
+            Report Generated Successfully!<br>
             Copy the JSON data above to save your investment analysis
         </div>
         """, unsafe_allow_html=True)
     
     # Interactive Tips
-    st.header("💡 Interactive Investment Tips")
+    st.header("Investment Tips")
     
     tip_category = st.selectbox("Choose tip category:", [
         "Risk Management", "Tax Planning", "Market Timing", "Rebalancing", "Emergency Planning"
     ])
     
     tips = {
-        "Risk Management": "🛡 Diversify across asset classes and review your risk tolerance annually. Your current portfolio risk varies from {:.1f}% to {:.1f}% across market scenarios.".format(
+        "Risk Management": "Diversify across asset classes and review your risk tolerance annually. Your current portfolio risk varies from {:.1f}% to {:.1f}% across market scenarios.".format(
             results['bullish']['portfolio_risk']*100, results['bearish']['portfolio_risk']*100),
-        "Tax Planning": "💰 Consider ELSS funds for tax saving under 80C. Debt funds held >3 years get indexation benefits.",
-        "Market Timing": "⏰ Time in the market beats timing the market. Your SIP approach helps average market volatility.",
-        "Rebalancing": "⚖ Rebalance your portfolio annually or when allocation deviates by >5% from target.",
-        "Emergency Planning": "🚨 Maintain 6-12 months of expenses in liquid funds before investing in growth assets."
+        "Tax Planning": "Consider ELSS funds for tax saving under 80C. Debt funds held >3 years get indexation benefits.",
+        "Market Timing": "Time in the market beats timing the market. Your SIP approach helps average market volatility.",
+        "Rebalancing": "Rebalance your portfolio annually or when allocation deviates by >5% from target.",
+        "Emergency Planning": "Maintain 6-12 months of expenses in liquid funds before investing in growth assets."
     }
     
     st.markdown(f"""
     <div class="info-box">
-        <h4>💡 {tip_category}</h4>
+        <h4>{tip_category}</h4>
         {tips[tip_category]}
     </div>
     """, unsafe_allow_html=True)
     
-    # Footer with enhanced styling
+    # Footer
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #6b7280; font-size: 0.9rem; padding: 2rem;">
-        <div class="floating-emoji" style="font-size: 1.5rem;">🚀</div>
-        <h3 style="color: #8b5cf6;">Strategic Investment Teacher Pro</h3>
-        <p>🎓 Advanced Financial Planning & Investment Education Platform</p>
-        <p>✨ Features: Scenario Analysis | Debt Integration | Time-Weighted Sharpe Ratios | Risk Modeling</p>
-        <p><em>🔒 Educational purposes only. Consult certified financial advisors for investment decisions.</em></p>
+        <h3 style="color: #8b5cf6;">Strategic Investment Planner</h3>
+        <p>Advanced Financial Planning & Investment Education Platform</p>
+        <p>Features: Scenario Analysis | Debt Integration | Time-Weighted Sharpe Ratios | Risk Modeling</p>
+        <p><em>Educational purposes only. Consult certified financial advisors for investment decisions.</em></p>
         
         <div style="margin-top: 2rem; padding: 1rem; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 0.5rem;">
-            <p style="color: #22c55e; font-weight: bold;">🎯 Made with ❤ for Financial Literacy</p>
+            <p style="color: #22c55e; font-weight: bold;">Made for Financial Literacy</p>
             <p style="font-size: 0.8rem;">Empowering investors with sophisticated tools and real-world scenarios</p>
         </div>
     </div>
